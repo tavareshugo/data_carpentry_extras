@@ -1,0 +1,518 @@
+---
+title: "Data manipulation - example from transcriptome analysis"
+author: "Hugo Tavares"
+date: "12 February 2018"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 3
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, rows.print = 10)
+```
+
+# Lesson objectives
+
+* Introducing a `matrix` object and how to convert it to a `tibble`
+* Reformat data from wide to long format (and vice-versa)
+* Join tables
+* Using factors to improve data visualisation
+
+In this lesson, we will apply some of the skills that we've gained so far to manipulate 
+and explore a dataset from an RNAseq experiment. 
+
+This lesson uses data from an experiment included in the 
+[`airway` R/Bioconductor package](https://bioconductor.org/packages/release/data/experiment/vignettes/airway/inst/doc/airway.html). 
+Very briefly:
+
+> This package provides [...] read counts in genes for an RNA-Seq experiment on 
+four human airway smooth muscle cell lines treated with dexamethasone.
+
+
+### Important note
+
+There are many dedicated packages to deal with RNAseq data, mostly 
+within the [Bioconductor](https://bioconductor.org/) package repository. 
+
+**This lesson is not about analysing RNAseq data** (that would be a topic for a whole 
+course!), but rather to show you how the data manipulation principles learned 
+so far can be applied to explore these kind of data. 
+
+If you are doing RNAseq analysis, you should use 
+[dedicated packages and workflows](https://www.bioconductor.org/help/workflows/rnaseqGene/), 
+which implement models to account for particular features of these data.
+
+
+# Getting started
+
+Let's say that you did this experiment yourself, and that a bioinformatician 
+analysed it and provided you with three things:
+
+* Normalised read counts for all genes (a measure of the genes' expression)
+* Information about each sample
+* A table with results from a statistical test that assesses the likelihood of 
+your data assuming no difference between treated and untreated cells.
+
+The data are provided within an `RData` file, which you can download and read 
+into your R session.
+
+First, let's clean our workspace (remove any objects created before), 
+and also load the `tidyverse` package. 
+
+It's also a good idea to check if your _working directory_ is correctly set to 
+your workshop folder, which should contain a `data` folder within it (you can 
+use `getwd()` to check your _working directory_).
+
+```{r, eval = FALSE}
+# Clean your workspace by removing any objects created beforehand
+rm(list = ls())
+
+# Load the tidyverse package
+library(tidyverse)
+
+# Download the data provided by your collaborator
+download.file("https://github.com/tavareshugo/2018-02-22-KCL/blob/gh-pages/rnaseq_lesson/rnaseq_data.RData?raw=true",
+              destfile = "data/rnaseq_data.RData")
+
+# Load the data
+load("data/rnaseq_data.RData")
+```
+
+```{r, echo = FALSE, message = FALSE}
+# In the repository data is read from the current directory
+# Load the tidyverse package
+library(tidyverse)
+
+# Load the data
+load("rnaseq_data.RData")
+```
+
+Now that you have these data, you want to produce the following two visualisations:
+
+```{r, echo=FALSE, warning=FALSE}
+# test_result %>% 
+#   mutate(sig = ifelse(padj < 0.05, "FDR < 5%", "FDR >= 5%")) %>% 
+#   ggplot(aes(baseMean, log2FoldChange, colour = sig)) +
+#   geom_point() +
+#   scale_x_log10() +
+#   scale_colour_manual(values = c("red3", "black"), na.value = "grey48") +
+#   labs(x = "Mean expression", y = "log2(treat/ctrl)",
+#        title = "MA plot")
+
+norm_cts %>% 
+  as_tibble(rownames = "gene") %>% 
+  gather(sample, cts, -gene) %>% 
+  left_join(sample_info, by = "sample") %>% 
+  full_join(test_result, by = "gene") %>% 
+  filter(padj < 0.05) %>% 
+  mutate(up_or_down = ifelse(log2FoldChange > 0, "up-regulated", "down-regulated")) %>% 
+  group_by(gene, dex, up_or_down) %>% 
+  summarise(mean_cts = mean(cts)) %>% 
+  ungroup() %>% 
+  mutate(dex = factor(dex, levels = c("untrt", "trt"))) %>% 
+  ggplot(aes(dex, mean_cts, group = gene)) +
+  geom_line(alpha = 0.5) +
+  facet_grid(~ up_or_down) +
+  labs(x = "Treatment", y = "Normalised mean expression", 
+       title = "Mean expression per gene")
+
+norm_cts %>% 
+  as_tibble(rownames = "gene") %>% 
+  gather(sample, cts, -gene) %>% 
+  left_join(sample_info, by = "sample") %>% 
+  full_join(test_result, by = "gene") %>% 
+  filter(padj < 0.05) %>% 
+  mutate(sample = factor(sample, levels = unique(sample[order(dex)])),
+         gene = factor(gene, levels = unique(gene[order(log2FoldChange)]))) %>% 
+  group_by(gene) %>% 
+  mutate(cts = scale(cts)) %>% 
+  ggplot(aes(sample, gene, fill = cts)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue3", mid = "grey", high = "red3") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text.y = element_blank(), axis.ticks = element_blank(), axis.title = element_blank()) +
+  labs(fill = "Z-score", title = "Heatmap of gene expression per sample")
+```
+
+
+**Exercise:**
+
+> Familiarise yourself with these data:
+>
+> - what kind of objects were you provided with? (hint: `class()`)
+> - How many samples did you have?
+> - How many genes do you have gene expression levels for?
+> - How many genes were differentially expressed at the 5% false-discovery rate?
+> - After looking at these data and their formats, think about the steps you'd have
+to take in order to produce the graphs above.
+
+
+# Preparing data for visualisation
+
+To produce the plots above, we need to do a few things:
+
+1. Convert the matrix of normalised counts to a `tibble` object
+2. Convert that table to "long" format, i.e. with 3 columns: `gene`, `sample_id`,
+`cts`, rather than one column per sample
+3. Join this table with the `sample_info` table 
+4. Filter "significant" genes from `test_result` table and classify them as up- or 
+down-regulated. Join this table to the previous one.
+5. Summarise the normalised counts to obtain the average expression per treatment 
+and sample
+
+### Matrix object
+
+You might have noticed that `norm_cts` is a `matrix` object. We haven't found 
+these before, and to produce either plot, it is convenient to start by converting 
+our matrix of gene expression to a `tibble` (`data.frame`).
+
+Matrices are a bit similar to `data.frame`, but they only contain values of a 
+single type, in this case numeric values (whereas in a `data.frame` different 
+columns can contain different types of data). 
+
+```{r}
+# Look at the first 10 rows of norm_cts
+norm_cts[1:10, ]
+```
+
+You will also notice that gene names are contained in the row names of this 
+matrix. 
+
+To convert this matrix into a `tibble` object we can use the function `as_tibble()`:
+
+```{r}
+# Convert matrix to tibble
+as_tibble(norm_cts)
+```
+
+But now we've lost our gene names! 
+If we look at the function's help (`?as_tibble`), we can see that there's a way 
+to solve this problem:
+
+```{r}
+# Convert matrix to tibble - add colnames to a new column called "gene"
+cts_tbl <- as_tibble(norm_cts, rownames = "gene")
+cts_tbl
+```
+
+
+### Reshaping data to "long" format
+
+There's two functions that allow us to convert tables from a "wide" to a "long" 
+format and vice-versa: `gather()` and `spread()`.
+
+![](http://www.datacarpentry.org/R-ecology-lesson/img/spread_data_R.png)
+
+![](http://www.datacarpentry.org/R-ecology-lesson/img/gather_data_R.png)
+
+If you notice, what we want in our case is to `gather` our gene expression 
+columns. We can do this by giving `gather()` four things:
+
+* The data, i.e. our table of gene expression
+* A name for the new column that will contain the old column names (the "key" column)
+* A name for the new column that will contain our expression counts (the "values" column)
+* The names of the columns that we want to gather in this way
+
+Like so:
+
+```{r}
+# "gather" the counts data
+cts_long <- cts_tbl %>% 
+  gather(sample_id, cts, SRR1039508:SRR1039521)
+
+cts_long
+```
+
+If we wanted to do the reverse, we could use the `spread()` function:
+
+```{r}
+cts_long %>% 
+  spread(sample_id, cts)
+```
+
+(see [here](http://www.datacarpentry.org/R-ecology-lesson/03-dplyr.html#reshaping_with_gather_and_spread)
+for another example of using these functions)
+
+
+### Joining tables together
+
+The next thing we want to do is to add information about each sample to our 
+gene expression table.
+
+```{r}
+sample_info
+```
+
+We can do this by _joining_ the `cts_long` table with the `sample_info` table.
+
+Joining tables is an important task that is often needed in multi-layered data.
+
+There are several different kinds of joins that can be performed. Let's look 
+at the "Combine Data Sets" section of the 
+[dplyr cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf) 
+to understand them better.
+
+In our case, we know that all samples in our counts table also occur in the `sample_info` 
+table, so there's a few different kinds of joins that would work. 
+
+For safety, let's use `full_join()`, to ensure we retain all data:
+
+```{r}
+cts_long <- full_join(cts_long, sample_info, by = c("sample_id" = "sample"))
+
+cts_long
+```
+
+Notice how, in this case, the columns we wanted to be matched between the two 
+tables had different names. Also, we can join tables by more than one 
+column, which is not necessary here.
+
+
+### Filter and classify genes
+
+Now we want to add information about the test results for each gene to our gene 
+expression table. 
+However, we only want to retain genes that are likely to have a response to the 
+treatment.
+
+**Exercise:**
+
+> - Using the `test_result` table, make a new table called `genes_of_interest` 
+that contains only those genes with `padj < 0.05`. Keep only the columns 
+`gene`, `log2FoldChange`.
+> - Create a new table called `cts_filtered` by joining the previous table with 
+the `cts_long` table. Retain only the filtered genes. 
+
+```{r, echo = FALSE}
+# Filter the results
+genes_of_interest <- test_result %>% 
+  filter(padj < 0.05) %>% 
+  select(gene, log2FoldChange)
+
+# Join the two tables
+cts_filtered <- right_join(cts_long, genes_of_interest, by = "gene")
+```
+
+```{r}
+cts_filtered
+```
+
+Finally, we want to classify our genes according to whether they were up- or 
+down-regulated after the treatement. These genes would have, respectively, 
+a positive or negative log2(fold-change) between the two conditions. 
+
+We can therefore use the `log2FoldChange` column to create a new column that will 
+classify our genes as being of either class, depending on whether its value is positive 
+or negative. This type of operation can be done using the `ifelse()` function.
+
+```{r}
+cts_filtered <- cts_filtered %>% 
+  mutate(up_or_down = ifelse(log2FoldChange > 0, "up-regulated", "down-regulated"))
+
+cts_filtered
+```
+
+
+### Calculate mean expression per gene
+
+Now, we can apply the 
+["split-apply-combine"](http://www.datacarpentry.org/R-ecology-lesson/03-dplyr.html#split-apply-combine_data_analysis_and_the_summarize()_function) 
+strategy that we've already learned about, to summarise the data per gene.
+
+**Exercise:**
+
+> Using `group_by` and `summarise` create a new table called `cts_per_gene` with 
+the mean expression of each gene in each treatment.
+
+```{r, echo = FALSE}
+cts_per_gene <- cts_filtered %>% 
+  group_by(gene, dex, up_or_down) %>% 
+  summarise(mean_cts = mean(cts)) %>% 
+  ungroup()
+
+cts_per_gene
+```
+
+
+# Making our plots
+
+With that final table, we are now ready to produce our plot!
+
+```{r}
+ggplot(cts_per_gene, aes(dex, mean_cts)) +
+  geom_line(aes(group = gene)) +
+  facet_grid(~ up_or_down)
+```
+
+Notice how we needed to specify the option `group = gene`, to tell `geom_line` 
+that each line should connect the values referring to the same gene. Otherwise, 
+the function would not know what points should be connected.
+
+
+### Using factors to order values in plots
+
+The plot above is quite close to what we want, but we notice that the labels 
+on the x-axis appear in the opposite order of what we might want. 
+
+To solve this, we can convert the `dex` variable to a factor, specifying the 
+levels in the right order:
+
+```{r}
+cts_per_gene %>% 
+  mutate(dex = factor(dex, levels = c("untrt", "trt"))) %>% 
+  ggplot(aes(dex, mean_cts)) +
+  geom_line(aes(group = gene), alpha = 0.5) +
+  facet_grid(~ up_or_down)
+```
+
+
+### Ordering factors based on other variables
+
+Let's look at how using factors can be very useful to improve our display of 
+information.
+
+Let's try to make a "heatmap" representation of our genes' expression in every sample:
+
+```{r}
+ggplot(cts_filtered, aes(sample_id, gene)) +
+  geom_tile(aes(fill = cts))
+```
+
+From the graph above, we can first see that we have an aesthetic problem with our 
+axis labels: neither of them are readable! We can fix this by customizing our
+plot using the `theme()` function:
+
+```{r}
+# Make the text on the x-axis at an angle
+# Remove the text from the y-axis
+ggplot(cts_filtered, aes(sample_id, gene)) +
+  geom_tile(aes(fill = cts)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text.y = element_blank())
+```
+
+Now it's easy to see that the order in which the samples appear is alphabetical,
+but ideally we would like it if samples appeared grouped according to their 
+treatment.
+
+```{r, echo = FALSE}
+sample_info %>% arrange(dex) %>% select(dex, sample)
+```
+
+We know we can change the order of the labels if we convert the `sample_id` variable 
+into a factor. And in this case, we would like the order of the samples to be 
+according to the order of the `dex` variable.
+
+Of course we could do it by hand, but imagine you had hundreds of samples!
+
+Here's a simplified example of how we can order a factor based on another variable:
+
+```{r}
+animal <- c("mouse", "elephant", "cat", "mouse", "elephant")
+weight <- c(10, 100000, 100, 10, 100000)
+
+# Default order of levels is alphabetical
+factor(animal)
+
+# The order we want is according to their weight
+order(weight)
+
+# Use this order to order our animals
+animal[order(weight)]
+
+# Get the unique values of the ordered vector
+unique(animal[order(weight)])
+
+# Put it all together:
+factor(animal, levels = unique(animal[order(weight)]))
+```
+
+Using the trick above, we can order our samples according to their treatment:
+
+```{r}
+cts_filtered %>% 
+  mutate(sample_id = factor(sample_id, levels = unique(sample_id[order(dex)]))) %>% 
+  ggplot(aes(sample_id, gene)) +
+  geom_tile(aes(fill = cts)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text.y = element_blank())
+```
+
+This is already much more structured. However, we still have the problem that 
+our genes are also not ordered logically. Preferably we would like them 
+ordered according to their fold-change between treatments.
+
+**Exercise:**
+
+> Using the same trick as above, order the genes according to the `log2FoldChange` 
+column
+
+```{r, echo = FALSE}
+cts_filtered %>% 
+  mutate(sample_id = factor(sample_id, levels = unique(sample_id[order(dex)])),
+         gene = factor(gene, levels = unique(gene[order(log2FoldChange)]))) %>% 
+  ggplot(aes(sample_id, gene)) +
+  geom_tile(aes(fill = cts)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text.y = element_blank())
+```
+
+And this is a much more structured graph!
+
+
+### Transforming expression data for visualization
+
+There's one final thing that will improve our "heatmap" representation of the 
+data. We could transform our data to ensure that the different genes are 
+represented on a comparable scale. 
+
+You could imagine that two genes might have changed by the same magnitude (say, 
+doubled the expression after treatment), but their base mean levels of expression 
+might have been quite different. For example, one gene might have changed from 
+10 to 20 and another from 100 to 200. 
+
+If what we're interested in is the relative change in expression, then 
+those two genes will appear more different than they really are in our heatmap.
+
+A useful data transformation in this case is to _center_ and _scale_ each genes'
+expression by their mean and standard deviation, respectively. The values thus 
+obtained are known as [z-scores](https://en.wikipedia.org/wiki/Standard_score), 
+and can be interpreted as the "number of standard deviations away from the mean". 
+
+A positive z-score means that the gene's expression was above the average across 
+samples, whereas a negative one means it was below average. A value of zero means 
+the gene's expression was exactly average.
+
+In R, we can use the function `scale` to do this transformation. Let's re-do our 
+heatmap, but _center_ and _scale_ each gene's expression first:
+
+```{r}
+cts_filtered %>% 
+  mutate(sample_id = factor(sample_id, levels = unique(sample_id[order(dex)])),
+         gene = factor(gene, levels = unique(gene[order(log2FoldChange)]))) %>% 
+  group_by(gene) %>% 
+  mutate(cts = scale(cts)) %>% 
+  ggplot(aes(sample_id, gene)) +
+  geom_tile(aes(fill = cts)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.title.y = element_blank()) +
+  scale_fill_gradient2(low = "blue3", mid = "grey", high = "red3") +
+  labs(x = "Sample", fill = "Z-score")
+```
+
+And that's it! Notice that because of the symmetry of z-scores, they are 
+very suited to a "divergent colour scale", which we've set with the function 
+`scale_fill_gradient2` to emphasize positive and negative values in a more 
+intuitive way.
+
+Also notice how we've further improved the appearance of the plot by removing the 
+y-axis label and ticks, and customised our labels. 
+
+
+
+
