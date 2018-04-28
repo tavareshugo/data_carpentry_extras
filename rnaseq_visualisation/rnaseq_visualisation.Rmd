@@ -1,7 +1,7 @@
 ---
 title: "Data manipulation - example from transcriptome analysis"
 author: "Hugo Tavares"
-date: "12 February 2018"
+date: "28 April 2018"
 output:
   html_document:
     toc: yes
@@ -13,6 +13,10 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, rows.print = 10)
 ```
+
+_Note:_ This lesson has been used as an extra in some 
+[Data Carpentry in R](http://www.datacarpentry.org/R-ecology-lesson/) 
+courses, and thus assumes that some of those lessons were covered beforehand. 
 
 # Lesson objectives
 
@@ -74,7 +78,8 @@ rm(list = ls())
 library(tidyverse)
 
 # Download the data provided by your collaborator
-download.file("https://github.com/tavareshugo/2018-02-22-KCL/blob/gh-pages/rnaseq_lesson/rnaseq_data.RData?raw=true",
+dir.create("data")
+download.file("https://github.com/tavareshugo/data_carpentry_extras/blob/master/rnaseq_visualisation/rnaseq_data.RData?raw=true",
               destfile = "data/rnaseq_data.RData")
 
 # Load the data
@@ -93,8 +98,8 @@ load("rnaseq_data.RData")
 Now that you have these data, you want to produce the following two visualisations:
 
 ```{r, echo=FALSE, warning=FALSE}
-# test_result %>% 
-#   mutate(sig = ifelse(padj < 0.05, "FDR < 5%", "FDR >= 5%")) %>% 
+# test_result %>%
+#   mutate(sig = ifelse(padj < 0.05, "FDR < 5%", "FDR >= 5%")) %>%
 #   ggplot(aes(baseMean, log2FoldChange, colour = sig)) +
 #   geom_point() +
 #   scale_x_log10() +
@@ -125,8 +130,8 @@ norm_cts %>%
   left_join(sample_info, by = "sample") %>% 
   full_join(test_result, by = "gene") %>% 
   filter(padj < 0.05) %>% 
-  mutate(sample = factor(sample, levels = unique(sample[order(dex)])),
-         gene = factor(gene, levels = unique(gene[order(log2FoldChange)]))) %>% 
+  mutate(sample = reorder(sample, rank(dex)),
+         gene = reorder(gene, log2FoldChange)) %>% 
   group_by(gene) %>% 
   mutate(cts = scale(cts)) %>% 
   ggplot(aes(sample, gene, fill = cts)) +
@@ -412,6 +417,42 @@ Here's a simplified example of how we can order a factor based on another variab
 
 ```{r}
 animal <- c("mouse", "elephant", "cat", "mouse", "elephant")
+weight <- c(10, 1e6, 10000, 10, 1e6)
+
+# Default order of levels is alphabetical
+factor(animal)
+
+# We can use the reorder function to order the levels based on a numeric variable
+reorder(animal, weight)
+```
+
+But how about this example?
+
+```{r}
+animal <- c("mouse", "elephant", "cat", "mouse", "elephant")
+animal_order <- c("1st", "3rd", "2nd", "1st", "3rd")
+
+# Order levels of animals based on the size
+reorder(animal, animal_order)
+```
+
+This throws a warning and does not reorder the levels based on the order we want.
+
+This is because the `reorder()` function works best if the variable we're using 
+to define the order of the levels is numeric. In this case, we could do the following:
+
+```{r}
+# Define the rank of each string in `animal_ranks`
+rank(animal_order)
+
+# Use this ranking of our character vector inside reorder
+reorder(animal, rank(animal_order))
+```
+
+
+```{r, eval = FALSE, echo = FALSE}
+### THIS CODE CHUNK IS DEPRECATED - USE reorder() INSTEAD
+animal <- c("mouse", "elephant", "cat", "mouse", "elephant")
 weight <- c(10, 100000, 100, 10, 100000)
 
 # Default order of levels is alphabetical
@@ -434,7 +475,7 @@ Using the trick above, we can order our samples according to their treatment:
 
 ```{r}
 cts_filtered %>% 
-  mutate(sample_id = factor(sample_id, levels = unique(sample_id[order(dex)]))) %>% 
+  mutate(sample_id = reorder(sample_id, rank(dex))) %>% 
   ggplot(aes(sample_id, gene)) +
   geom_tile(aes(fill = cts)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
@@ -448,19 +489,17 @@ ordered according to their fold-change between treatments.
 **Exercise:**
 
 > Using the same trick as above, order the genes according to the `log2FoldChange` 
-column
+column - you should obtain this much more structured graph:
 
 ```{r, echo = FALSE}
 cts_filtered %>% 
-  mutate(sample_id = factor(sample_id, levels = unique(sample_id[order(dex)])),
-         gene = factor(gene, levels = unique(gene[order(log2FoldChange)]))) %>% 
+  mutate(sample_id = reorder(sample_id, rank(dex)),
+         gene = reorder(gene, log2FoldChange)) %>% 
   ggplot(aes(sample_id, gene)) +
   geom_tile(aes(fill = cts)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         axis.text.y = element_blank())
 ```
-
-And this is a much more structured graph!
 
 
 ### Transforming expression data for visualization
@@ -491,8 +530,8 @@ heatmap, but _center_ and _scale_ each gene's expression first:
 
 ```{r}
 cts_filtered %>% 
-  mutate(sample_id = factor(sample_id, levels = unique(sample_id[order(dex)])),
-         gene = factor(gene, levels = unique(gene[order(log2FoldChange)]))) %>% 
+  mutate(sample_id = reorder(sample_id, rank(dex)),
+         gene = reorder(gene, log2FoldChange)) %>% 
   group_by(gene) %>% 
   mutate(cts = scale(cts)) %>% 
   ggplot(aes(sample_id, gene)) +
@@ -500,7 +539,7 @@ cts_filtered %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1),
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank(),
-        axis.title.y = element_blank()) +
+        axis.title.y = element_blank()) + 
   scale_fill_gradient2(low = "blue3", mid = "grey", high = "red3") +
   labs(x = "Sample", fill = "Z-score")
 ```
