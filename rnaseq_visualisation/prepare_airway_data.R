@@ -4,8 +4,11 @@ library(DESeq2)
 library(tidyverse)
 
 
-# Create a DESeqDataSeq object from the airway data
+# Load the count data and get raw count matrix
 data("airway")
+raw_cts <- assay(airway)
+
+# Create a DESeqDataSeq object from the airway data
 dds <- DESeqDataSet(airway, design = ~ cell + dex)
 rm(airway)
 
@@ -64,7 +67,7 @@ sample_info <- colData(dds) %>%
 
 #### Save R object for loading ####
 
-save(test_result, norm_cts, sample_info,
-     file = "~/Documents/work/teaching/2018-02-22-KCL/expression_lesson/expression_lesson.RData",
+save(test_result, norm_cts, raw_cts, sample_info,
+     file = "rnaseq_data.RData",
      compress = "bzip2")
 
