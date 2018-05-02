@@ -1,0 +1,163 @@
+---
+title: "Recap Day 1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Create objects
+
+In R **create objects** (something that contains a value) with `<-`
+
+```{r}
+x <- 53.341
+```
+
+### Functions
+
+We can use **functions** to do specific operations
+
+```{r}
+round(x)   # round the the value of x
+```
+
+Functions have **options** that can change their behaviour.
+Separate options using a comma
+
+```{r}
+round(x, digits = 1) # round to one decimal point
+```
+
+
+### Vector
+
+A **vector** contains several values _all of the same type_
+(numeric, character, logical)
+
+```{r}
+x_chr <- c("dog", "cat", "goldfish")   # character vector
+x_num <- c(1, 5, 23.3, 55.2)           # numeric vector
+x_log <- c(TRUE, TRUE, FALSE, TRUE)    # logical vector
+```
+
+**Access values** inside the vector with `[]`
+
+```{r}
+x_chr[2]
+x_num[c(2, 4)]
+```
+
+
+### Conditions
+
+Create logical vectors using **conditions**
+
+```{r}
+x_num
+x_num > 20                # is x_num greater than 20
+x_num == 5                # is x_num equal to 5
+x_num %in% c(20, 30, 1)   # is x_num contained the vector on the right
+```
+
+Combine conditions with & (AND) and | (OR)
+
+```{r}
+x
+x_num >= 10 & x_num <= 30   # is x_num greater than or equal to 10 AND smaller than or equal to 30
+x_num < 10 | x_num > 30   # is x_num smaller than 10 OR greater than 30
+```
+
+We can use logical vectors (TRUE/FALSE) to subset vectors
+
+```{r}
+x_num[x_num > 20]   # return values of x_num where x_num is greater than 20
+```
+
+### data.frame
+
+A **data.frame** is a tabular object (rows and columns).
+Usually we create these from a file with `read.csv()`
+
+```{r}
+# Add option to turn off behaviour of converting strings to factors
+surveys <- read.csv("https://ndownloader.figshare.com/files/2292169",
+                    stringsAsFactors = FALSE)
+```
+
+Subset data.frames using **[rows, columns]**
+
+```{r}
+surveys[1:6, c(5, 11)]   # rows 1 to 6 and columns 5 and 11
+```
+
+Access individual columns by name using **`$`**
+```{r, eval = FALSE}
+surveys$species   # returns a vector with the values of the species column
+```
+
+```{r, echo = FALSE}
+c(surveys$species[1:10], "...")
+```
+
+### missing values
+
+Sometimes we have **missing values**, encoded as `NA`
+
+```{r}
+y <- c(23, 44, NA, 212)
+```
+
+We need to ensure these are dealt with properly
+
+```{r}
+mean(y)   # returns NA
+mean(y, na.rm = TRUE)  # removes NA and then calculates mean
+```
+
+The `is.na()` function is important to deal with missing values:
+
+```{r}
+y
+
+# create a logical that is true if value is missing
+is.na(y)
+
+# Negate that expression using !
+!is.na(y)
+```
+
+We can **remove NA** by using this function:
+
+```{r}
+y[!is.na(y)]  # return values of y that are not missing
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
