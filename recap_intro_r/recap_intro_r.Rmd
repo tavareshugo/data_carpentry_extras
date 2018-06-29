@@ -75,6 +75,21 @@ We can use logical vectors (TRUE/FALSE) to subset vectors
 x_num[x_num > 20]   # return values of x_num where x_num is greater than 20
 ```
 
+To set the filtering conditions, several _relational operators_ can be used:
+
+* `==` is equal to
+* `!=` is different from
+* `%in%` is contained in
+* `>` is greater than
+* `>=` is greater than or equal to
+
+It is also possible to combine several conditions together using the following 
+_logical operators_:
+
+* `&` AND
+* `|` OR
+
+
 ### data.frame
 
 A **data.frame** is a tabular object (rows and columns).
@@ -133,25 +148,6 @@ We can **remove NA** by using this function:
 ```{r}
 y[!is.na(y)]  # return values of y that are not missing
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

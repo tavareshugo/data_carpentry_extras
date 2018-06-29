@@ -169,6 +169,19 @@ x_log &lt;- c(TRUE, TRUE, FALSE, TRUE)    # logical vector</code></pre>
 <p>We can use logical vectors (TRUE/FALSE) to subset vectors</p>
 <pre class="r"><code>x_num[x_num &gt; 20]   # return values of x_num where x_num is greater than 20</code></pre>
 <pre><code>## [1] 23.3 55.2</code></pre>
+<p>To set the filtering conditions, several <em>relational operators</em> can be used:</p>
+<ul>
+<li><code>==</code> is equal to</li>
+<li><code>!=</code> is different from</li>
+<li><code>%in%</code> is contained in</li>
+<li><code>&gt;</code> is greater than</li>
+<li><code>&gt;=</code> is greater than or equal to</li>
+</ul>
+<p>It is also possible to combine several conditions together using the following <em>logical operators</em>:</p>
+<ul>
+<li><code>&amp;</code> AND</li>
+<li><code>|</code> OR</li>
+</ul>
 </div>
 <div id="data.frame" class="section level3">
 <h3>data.frame</h3>
