@@ -1,0 +1,419 @@
+---
+title: "Syntax equivalents: base R vs Tidyverse"
+author: "Hugo Tavares"
+date: "20 September 2018"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 3
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results = FALSE)
+```
+
+
+This document is aimed at beggining R users that start by learning "tidyverse" functions. 
+It shows how some of the tasks done with "tidyverse" functions have a corresponding 
+solution using "base R" syntax (using functions that are part of the core packages 
+deployed with R). 
+
+It is important to understand that there are many different ways to achieve the 
+same thing, particularly in base R. I have tried to use simpler syntax where possible. 
+For the more complicated cases, I have based my solutions on top hits from web 
+searches. 
+
+It is also worth remembering that when you look for help online, you might find 
+solutions using "base R" syntax. If you are used to "tidyverse" packages, it 
+will help to add keywords such as "dplyr" and "tidyverse" to your search.
+
+There are many other resources available online, in particular several cheatsheets 
+that might be useful as a reference: https://www.rstudio.com/resources/cheatsheets/ 
+
+
+# Setup
+
+Load the packages needed for these examples:
+
+```{r, message=FALSE}
+library(dplyr)
+library(tidyr)
+```
+
+The datasets used in these examples come pre-loaded with R. To find more about them 
+check their help pages:
+
+```{r}
+?iris
+?mtcars
+?Indometh
+```
+
+
+# Extract variables (columns)
+
+**tidyverse**
+
+```{r}
+select(iris, Species, Petal.Width) # by name
+select(iris, 5, 4)  # by column index
+```
+
+
+**base R**
+
+```{r}
+iris[, c("Species", "Petal.Width")] # by name
+iris[, c(5, 4)]  # by column index
+```
+
+
+
+# Make new variables (columns)
+
+**tidyverse**
+
+```{r}
+mutate(iris, 
+       Petal.Ratio = Petal.Length/Petal.Width,
+       Sepal.Ratio = Sepal.Length/Sepal.Width)
+```
+
+
+**base R**
+
+```{r}
+iris$Petal.Ratio <- iris$Petal.Length/iris$Petal.Width
+iris$Sepal.Ratio <- iris$Sepal.Length/iris$Sepal.Width
+```
+
+
+
+# Extract observations (rows)
+
+**tidyverse**
+
+```{r}
+filter(iris, Petal.Width > 0.5 & Species == "setosa")
+```
+
+
+**base R**
+
+```{r}
+# Using [,]
+iris[iris$Petal.Width > 0.5 & iris$Species == "setosa", ]
+
+# Using subset (works very much like dplyr::filter)
+subset(iris, Petal.Width > 0.5 & Species == "setosa")
+```
+
+
+
+# Arrange observations (rows)
+
+**tidyverse**
+
+```{r}
+# descending order of species (alphabetic) followed by ascending order of Petal.Width
+arrange(iris, desc(Species), Petal.Width) 
+```
+
+
+**base R**
+
+```{r}
+# descending order of species (alphabetic) followed by ascending order of Petal.Width
+iris[order(rev(iris$Species), iris$Petal.Width) , ]
+```
+
+
+
+# Summarise observations (rows)
+
+**tidyverse**
+
+```{r}
+# Generic way
+summarise(iris, 
+          Petal.Length.mean = mean(Petal.Length),
+          Petal.Length.sd = sd(Petal.Length),
+          Sepal.Length.mean = mean(Sepal.Length),
+          Sepal.Length.sd = sd(Sepal.Length))
+
+# Shortcut when same functions applied to same variables 
+summarise_at(iris, 
+             .vars = c("Petal.Length", "Sepal.Length"), 
+             .funs = c("mean", "sd"))
+```
+
+(see also variants `summarise_all()` and `summarise_if()`)
+
+
+**base R**
+
+There are many ways to do this with _base R_, here's a couple of possibilities:
+
+```{r}
+# Manually create a data.frame
+data.frame(Petal.Length.mean = mean(iris$Petal.Length),
+           Petal.Length.sd = sd(iris$Petal.Length),
+           Sepal.Length.mean = mean(iris$Sepal.Length),
+           Sepal.Length.sd = sd(iris$Sepal.Length))
+
+# Use the "aggregate" function
+## Column names might have to be changed afterwards
+aggregate(formula = c(Sepal.Length, Petal.Length) ~ 1,
+          data = iris, 
+          FUN = function(x) c(mean = mean(x), sd = sd(x)))
+```
+
+
+
+# Combine tables
+
+Consider the following tables
+
+```{r, results = TRUE}
+band_members
+band_instruments
+band_instruments2
+```
+
+**tidyverse**
+
+```{r}
+# Retain rows with matches in both tables
+inner_join(band_members, band_instruments, by = "name")  
+
+# Retain all rows:
+full_join(band_members, band_instruments, by = "name")  
+
+# Retain all rows from first table:
+left_join(band_members, band_instruments, by = "name")  
+
+# Retain all rows from second table:
+right_join(band_members, band_instruments, by = "name")  
+```
+
+Columns used for merging can have different names between tables:
+
+```{r}
+inner_join(band_members, band_instruments2, by = c("name" = "artist"))
+```
+
+
+**base R**
+
+```{r}
+# Retain rows with matches in both tables
+merge(band_members, band_instruments, by = "name")  
+
+# Retain all rows:
+merge(band_members, band_instruments, by = "name", all = TRUE)  
+
+# Retain all rows from first table:
+merge(band_members, band_instruments, by = "name", all.x = TRUE)  
+
+# Retain all rows from second table:
+merge(band_members, band_instruments, by = "name", all.y = TRUE)  
+```
+
+Columns used for merging can have different names between tables:
+
+```{r}
+merge(band_members, band_instruments2, by.x = "name", by.y = "artist")
+```
+
+
+
+# Grouped operations 
+
+**Important note**: with `dplyr`, grouped operations are initiated with the function 
+`group_by()`. It is a good habit to use `ungroup()` at the end of a series of 
+grouped operations, otherwise the groupings will be carried in downstream analysis, 
+which is not always desirable. In the examples below we follow this convention.
+
+
+**Note on base R**: with base R there are several ways to do these types of operations. 
+Here we show a generic "split-apply-combine" solution using the `by()` function. 
+These solutions require some understanding of `list` objects and how to write 
+custom functions. 
+
+
+### Summarise rows within groups
+
+**tidyverse**
+
+```{r}
+mtcars %>% 
+  group_by(cyl, gear) %>% 
+  summarise(mpg.mean = mean(mpg),
+            mpg.sd = sd(mpg),
+            wt.mean = mean(wt),
+            wt.sd = sd(wt)) %>% 
+  ungroup() # remove any groupings from downstream analysis
+```
+
+
+**base R**
+
+```{r}
+# First operate in the data.frame by group (split-apply)
+mtcars_by <- by(mtcars, 
+   INDICES = list(mtcars$cyl, mtcars$gear),
+   FUN = function(x){
+     data.frame(cyl = unique(x$cyl),
+                gear = unique(x$gear),
+                mpg.mean = mean(x$mpg),
+                mpg.sd = sd(x$mpg),
+                wt.mean = mean(x$wt),
+                wt.sd = sd(x$wt))
+   })
+
+# Then combine the results into a data.frame
+do.call(rbind, mtcars_by)
+```
+
+Alternative solution:
+
+```{r}
+# Using aggregate
+aggregate(formula = cbind(mpg, wt) ~ cyl + gear, 
+          data = mtcars, 
+          FUN = function(x){
+            c(mean = mean(x), sd = sd(x))
+          })
+```
+
+
+### Create new columns with calculations done within groups
+
+For example, center the measurements of "Petal.Width" by subtracting the mean 
+within species.
+
+**tidyverse**
+
+```{r}
+iris %>% 
+  group_by(Species) %>% 
+  mutate(Petal.Width.centered = Petal.Width - mean(Petal.Width)) %>% 
+  ungroup() # remove any groupings from downstream analysis
+```
+
+
+**base R**
+
+```{r}
+# First operate in the data.frame by group (split-apply)
+iris_by <- by(iris, 
+              INDICES = iris$Species, 
+              FUN = function(x){
+                x$Petal.Width.centered <- x$Petal.Width - mean(x$Petal.Width)
+                return(x)
+              })
+
+# Then combine the results into a data.frame
+do.call(rbind, iris_by)
+```
+
+Alternative solution:
+
+```{r}
+iris$Petal.Width.centered <- ave(iris$Petal.Width, iris$Species, FUN = function(x) x - mean(x))
+```
+
+
+
+### Filter rows with conditions evaluated within groups
+
+`iris` flowers with maximum "Petal.Width" for each "Species".
+
+**tidyverse** 
+
+```{r}
+iris %>% 
+  group_by(Species) %>% 
+  filter(Petal.Width == max(Petal.Width))
+```
+
+**base R**
+
+```{r}
+# First operate in the data.frame by group (split-apply)
+widest_petals <- by(iris, 
+                    INDICES = iris$Species, 
+                    FUN = function(x){
+                      x[x$Petal.Width == max(x$Petal.Width), ] 
+                    })
+
+# Then combine the results into a data.frame
+do.call(rbind, widest_petals)
+```
+
+
+
+
+# Reshaping data 
+
+### to "long" format
+
+**tidyverse**
+
+```{r}
+gather(iris, key = "trait", value = "measurement", Sepal.Length:Petal.Width)
+```
+
+
+**base R**
+
+I couldn't find an easy way to do this in a clean way, although `reshape()` 
+gets us close (but the "trait" variable is coded numerically):
+
+```{r}
+reshape(iris, 
+        varying = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"),
+        timevar = "trait",
+        idvar = "id",
+        v.names = "measurement",
+        direction = "long")
+```
+
+There is also `stack()`, but we loose the "Species" column in the process.
+
+```{r}
+stack(iris, select = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"))
+```
+
+
+
+### to "wide" format
+
+**tidyverse**
+
+```{r}
+spread(Indometh, key = "time", value = "conc")
+```
+
+Note that in this case it might have been better to first modify the "key" column
+so that the resulting column names are not numeric:
+
+```{r}
+Indometh %>% 
+  mutate(time = paste("conc", time, sep = "_")) %>% 
+  spread(key = "time", value = "conc")
+```
+
+
+**base R**
+
+```{r}
+reshape(Indometh, 
+        v.names = "conc",
+        idvar = "Subject",
+        timevar = "time",
+        direction = "wide")
+```
+
