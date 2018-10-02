@@ -1,0 +1,165 @@
+---
+title: "Data Carpentry in R - exercises"
+output: 
+  slidy_presentation:
+    incremental: false
+    highlight: monochrome
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+surveys <- read_csv("https://ndownloader.figshare.com/files/2292169")
+```
+
+
+----
+
+* How many animals were caught in each `plot_type` surveyed?
+* Make a summary table with the mean, minimum and maximum hindfoot length of each.
+Include the total number of individuals observed as well as the number of those 
+individuals that had data for this variable.
+* What was the heaviest animal measured in each year? Return the columns `year`, 
+`genus`, `species_id` and `weight`.
+
+
+----
+
+* Create a new data frame called `surveys_complete`, which:
+    * has no missing values for `weight`, `hindfoot_length` and `sex`
+    * contains only species that were measured in at least 50 individuals
+
+```{r, echo=FALSE}
+surveys_complete <- surveys %>% 
+  filter(!is.na(weight) & !is.na(sex) & !is.na(hindfoot_length))
+
+common_species <- surveys_complete %>% 
+  count(species_id) %>% 
+  filter(n >= 50)
+
+surveys_complete <- surveys_complete %>% 
+  filter(species_id %in% common_species$species_id)
+```
+
+The final data frame should have `r nrow(surveys_complete)` rows.
+
+
+----
+
+Boxplots are useful summaries, but hide the shape of the distribution. 
+For example, if the distribution is bimodal, we would not see it in a boxplot. 
+An alternative to the boxplot is the violin plot, where the shape 
+(of the density of points) is drawn.
+
+* Use `geom_violin()` to create violin plots of weight distributions for each `genus`
+* Some individuals are much heavier than others. Using a log scale in this case would help.
+Try adding a layer with `scale_y_log10()`. 
+* Can you overlay a boxplot with outliers removed (check `?geom_boxplot` help)?
+* Try and recreate the picture below, showing the distribution of weights by `species_id`,
+with violin plots coloured by `genus`.
+
+```{r, echo = FALSE}
+surveys_complete %>% 
+  ggplot(aes(species_id, weight)) +
+  geom_violin(aes(fill = genus)) +
+  geom_boxplot(width = 0.2, outlier.shape = NA) +
+  scale_y_log10()
+```
+
+----
+
+Make a visual representation of the number of observations we have of each genus 
+in each plot type. (hint: try the `size` aesthetic with `geom_point()`)
+
+```{r, echo = FALSE}
+surveys_complete %>% 
+  ggplot(aes(genus, plot_type)) +
+  geom_count() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Genus", y = "Plot Type")
+```
+
+
+----
+
+We want to explore if the species diversity (number of different species) changed 
+across the years in different plot treatments (`plot_type`). 
+
+* Make a new table called `yearly_diversity`, with the number of _distinct_ 
+`species_id` sampled in each year and plot type. 
+(hint: see the function `n_distinct()` to use inside the `summarise()` function)
+* Using the new table, try and reproduce the plot below
+* Update your summary table by also including information about sex (i.e. species 
+diversity per `year`, `plot_type` and `sex`). Can you think of ways to change 
+your previous plot to also visualise this extra information?
+
+```{r, echo = FALSE}
+surveys_complete %>% 
+  group_by(year, plot_type) %>% 
+  summarise(n_species = n_distinct(species_id)) %>% 
+  ggplot(aes(year, n_species)) +
+  geom_line(aes(colour = plot_type)) +
+  labs(colour = "Plot Type", x = "Year", y = "# species")
+```
+
+----
+
+* Using your `yearly_diversity` table, can you recreate the plot below, but 
+change the order of these panels so that M appears on top?
+
+```{r, echo = FALSE}
+yearly_diversity <- surveys_complete %>% 
+  group_by(year, sex, plot_type) %>% 
+  summarise(n_species = n_distinct(species_id))
+
+yearly_diversity %>% 
+  ggplot(aes(year, n_species)) +
+  geom_line(aes(colour = plot_type)) +
+  labs(colour = "Plot Type", x = "Year", y = "# species") +
+  facet_grid(sex ~ .)
+```
+
+
+----
+
+Use line plots to help you explore these questions:
+
+* How did the average weight of all species change across the years?
+* Was it different for males and females? 
+* What about between different `plot_type`? (hint: use facetting to help you)
+
+```{r, eval=FALSE, echo=FALSE}
+surveys_complete %>% 
+  group_by(year, sex, plot_type) %>% 
+  summarise(mean_wgt = mean(weight, na.rm = TRUE)) %>% 
+  ggplot(aes(year, mean_wgt, colour = sex)) +
+  geom_line() + geom_point() + facet_wrap(~ plot_type)
+```
+
+
+----
+
+* Make a scatterplot to explore the correlation between average male and female 
+weights per species in each `plot_type` surveyed. (hint: add a x=y identity line 
+using `geom_abline()`)
+
+```{r, echo=FALSE, warning=FALSE}
+surveys %>% 
+  filter(!is.na(weight) & !is.na(sex)) %>% 
+  group_by(species_id, plot_type, sex) %>% 
+  summarise(mean_wgt = mean(weight)) %>% 
+  ungroup() %>% 
+  spread(sex, mean_wgt) %>% 
+  ggplot(aes(M, F)) +
+  geom_abline(linetype = 2) +
+  geom_point(aes(colour = factor(plot_type))) +
+  scale_x_log10() + scale_y_log10() +
+  labs(x = "Male", y = "Female", colour = "Plot type")
+```
+
+
+
