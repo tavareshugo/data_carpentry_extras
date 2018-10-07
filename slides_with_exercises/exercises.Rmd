@@ -8,7 +8,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
@@ -19,6 +19,8 @@ surveys <- read_csv("https://ndownloader.figshare.com/files/2292169")
 
 ----
 
+## Ex 1
+
 * How many animals were caught in each `plot_type` surveyed?
 * Make a summary table with the mean, minimum and maximum hindfoot length of each.
 Include the total number of individuals observed as well as the number of those 
@@ -28,6 +30,8 @@ individuals that had data for this variable.
 
 
 ----
+
+## Ex 2
 
 * Create a new data frame called `surveys_complete`, which:
     * has no missing values for `weight`, `hindfoot_length` and `sex`
@@ -50,6 +54,8 @@ The final data frame should have `r nrow(surveys_complete)` rows.
 
 ----
 
+## Ex 3
+
 Boxplots are useful summaries, but hide the shape of the distribution. 
 For example, if the distribution is bimodal, we would not see it in a boxplot. 
 An alternative to the boxplot is the violin plot, where the shape 
@@ -57,7 +63,7 @@ An alternative to the boxplot is the violin plot, where the shape
 
 * Use `geom_violin()` to create violin plots of weight distributions for each `genus`
 * Some individuals are much heavier than others. Using a log scale in this case would help.
-Try adding a layer with `scale_y_log10()`. 
+Try adding a "scale" layer with `scale_y_log10()`. 
 * Can you overlay a boxplot with outliers removed (check `?geom_boxplot` help)?
 * Try and recreate the picture below, showing the distribution of weights by `species_id`,
 with violin plots coloured by `genus`.
@@ -72,6 +78,8 @@ surveys_complete %>%
 
 ----
 
+## Ex 4
+
 Make a visual representation of the number of observations we have of each genus 
 in each plot type. (hint: try the `size` aesthetic with `geom_point()`)
 
@@ -85,6 +93,8 @@ surveys_complete %>%
 
 
 ----
+
+## Ex 5
 
 We want to explore if the species diversity (number of different species) changed 
 across the years in different plot treatments (`plot_type`). 
@@ -108,8 +118,10 @@ surveys_complete %>%
 
 ----
 
-* Using your `yearly_diversity` table, can you recreate the plot below, but 
-change the order of these panels so that M appears on top?
+## Ex 6
+
+* Using your `yearly_diversity` table, recreate the plot below.
+* Can you change the order of the panels so that M appears on top?
 
 ```{r, echo = FALSE}
 yearly_diversity <- surveys_complete %>% 
@@ -126,6 +138,8 @@ yearly_diversity %>%
 
 ----
 
+## Ex 7
+
 Use line plots to help you explore these questions:
 
 * How did the average weight of all species change across the years?
@@ -137,11 +151,14 @@ surveys_complete %>%
   group_by(year, sex, plot_type) %>% 
   summarise(mean_wgt = mean(weight, na.rm = TRUE)) %>% 
   ggplot(aes(year, mean_wgt, colour = sex)) +
-  geom_line() + geom_point() + facet_wrap(~ plot_type)
+  geom_line() + geom_point() + facet_wrap(~ plot_type) +
+  labs(x = "Year", y = "Average biomass (g)")
 ```
 
 
 ----
+
+## Ex 8
 
 * Make a scatterplot to explore the correlation between average male and female 
 weights per species in each `plot_type` surveyed. (hint: add a x=y identity line 
@@ -161,5 +178,92 @@ surveys %>%
   labs(x = "Male", y = "Female", colour = "Plot type")
 ```
 
+
+----
+
+## Ex 9
+
+* Make a boxplot similar to the one below, showing the hindfoot length distribution, 
+with the x-axis sorted by mean weight. 
+(hint: create a colum with the mean weight per species and then use the function 
+`reorder()` to factorise the x-axis variable)
+
+```{r, echo=FALSE}
+surveys_complete %>% 
+  group_by(species_id) %>% 
+  mutate(mean_weight = mean(weight)) %>% 
+  ungroup() %>% 
+  mutate(species_id = reorder(species_id, mean_weight)) %>% 
+  ggplot(aes(species_id, hindfoot_length)) +
+  geom_boxplot(aes(fill = log10(mean_weight))) +
+  scale_fill_viridis_c()
+```
+
+----
+
+## Ex 10
+
+In a publication from [Ernest et al. 2017](https://www.journals.uchicago.edu/doi/10.1086/592402) 
+some species where classified according to their habitat preferences. 
+
+Read this information into your R session using the following command:
+
+```
+habitat_pref <- read_csv("https://raw.githubusercontent.com/tavareshugo/data_carpentry_extras/master/slides_with_exercises/species_habitat_affinities_Ernest2017.csv")
+```
+
+```{r, message=FALSE}
+habitat_pref <- read_csv("https://raw.githubusercontent.com/tavareshugo/data_carpentry_extras/master/slides_with_exercises/species_habitat_affinities_Ernest2017.csv")
+```
+
+* How many of these species are contained in your `surveys_complete` dataset? (hint: 
+the function `paste()` might be useful)
+
+```{r, eval=FALSE}
+sum(habitat_pref$species %in% paste(surveys_complete$genus, surveys_complete$species))
+```
+
+* Make a boxplot like the one below, showing the weight distribution of each 
+species that has habitat affinity information. (hint: look at the help for 
+`?facet_grid` to see how to make the panels scales and spacing adjust to the 
+data)
+
+```{r}
+surveys_complete %>% 
+  mutate(species_name = paste(genus, species)) %>% 
+  inner_join(habitat_pref, by = c("species_name" = "species")) %>% 
+  ggplot(aes(species_id, weight)) +
+  geom_boxplot(aes(fill = genus)) +
+  facet_grid(sex ~ habitat, scale = "free_x", space = "free_x") +
+  scale_y_log10()
+```
+
+
+----
+
+## Ex 11
+
+* Plot the change in abundance across the years for species with different habitat 
+affinities (include those species with no habitat information as well). 
+    * Abundance = number of individuals per hectare
+    * Each plot is 0.25ha
+
+(don't worry too much about getting the exact look of the graph below. But if you
+do want to get a similar look, try and do some web search! E.g. "how to change 
+legend position in ggplot2")
+
+```{r}
+surveys_complete %>% 
+  mutate(species_name = paste(genus, species)) %>% 
+  left_join(habitat_pref, by = c("species_name" = "species")) %>% 
+  group_by(year, habitat) %>% 
+  summarise(abundance = n()/(0.25*n_distinct(plot_id))) %>% 
+  ggplot(aes(year, abundance)) +
+  geom_line(aes(colour = habitat)) +
+  labs(x = "Year", y = "Abundance (# individuals/ha)", colour = "Habitat preference") +
+  scale_colour_viridis_d(na.value = "grey") +
+  theme_classic() +
+  theme(legend.position = c(0, 1), legend.justification = c(0, 1))
+```
 
 
