@@ -155,6 +155,25 @@ surveys_complete %>%
   labs(x = "Year", y = "Average biomass (g)")
 ```
 
+* Bonus: Try and add a "ribbon" which shows the mean +/- 2*SEM (standard error of 
+the mean, calculated as the standard deviation divided by the square root of the 
+number of observations)
+
+```{r}
+surveys_complete %>% 
+  group_by(year, sex, plot_type) %>% 
+  summarise(mean_wgt = mean(weight),
+            sd_wgt = sd(weight),
+            n = n(),
+            se_wgt = sd_wgt/sqrt(n)) %>% 
+  ggplot(aes(year, mean_wgt, colour = sex)) +
+  geom_ribbon(aes(ymin = mean_wgt - 2*se_wgt, ymax = mean_wgt + 2*se_wgt, fill = sex), 
+              alpha = 0.3, colour = NA) +
+  geom_line() + 
+  facet_wrap( ~ plot_type) +
+  labs(x = "Year", y = "Average biomass (g)")
+```
+
 
 ----
 
