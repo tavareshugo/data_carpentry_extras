@@ -1,14 +1,17 @@
 ---
 title: "Data Carpentry in R - exercises"
 output: 
-  slidy_presentation:
-    incremental: false
-    highlight: monochrome
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 3
+    highlight: pygments
     df_print: kable
+    code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
@@ -37,7 +40,7 @@ individuals that had data for this variable.
     * has no missing values for `weight`, `hindfoot_length` and `sex`
     * contains only species that were measured in at least 50 individuals
 
-```{r, echo=FALSE}
+```{r}
 surveys_complete <- surveys %>% 
   filter(!is.na(weight) & !is.na(sex) & !is.na(hindfoot_length))
 
@@ -68,7 +71,7 @@ Try adding a "scale" layer with `scale_y_log10()`.
 * Try and recreate the picture below, showing the distribution of weights by `species_id`,
 with violin plots coloured by `genus`.
 
-```{r, echo = FALSE}
+```{r}
 surveys_complete %>% 
   ggplot(aes(species_id, weight)) +
   geom_violin(aes(fill = genus)) +
@@ -83,7 +86,7 @@ surveys_complete %>%
 Make a visual representation of the number of observations we have of each genus 
 in each plot type. (hint: try the `size` aesthetic with `geom_point()`)
 
-```{r, echo = FALSE}
+```{r}
 surveys_complete %>% 
   ggplot(aes(genus, plot_type)) +
   geom_count() +
@@ -107,7 +110,7 @@ across the years in different plot treatments (`plot_type`).
 diversity per `year`, `plot_type` and `sex`). Can you think of ways to change 
 your previous plot to also visualise this extra information?
 
-```{r, echo = FALSE}
+```{r}
 surveys_complete %>% 
   group_by(year, plot_type) %>% 
   summarise(n_species = n_distinct(species_id)) %>% 
@@ -123,7 +126,7 @@ surveys_complete %>%
 * Using your `yearly_diversity` table, recreate the plot below.
 * Can you change the order of the panels so that M appears on top?
 
-```{r, echo = FALSE}
+```{r}
 yearly_diversity <- surveys_complete %>% 
   group_by(year, sex, plot_type) %>% 
   summarise(n_species = n_distinct(species_id))
@@ -146,7 +149,7 @@ Use line plots to help you explore these questions:
 * Was it different for males and females? 
 * What about between different `plot_type`? (hint: use facetting to help you)
 
-```{r, eval=FALSE, echo=FALSE}
+```{r, eval=FALSE}
 surveys_complete %>% 
   group_by(year, sex, plot_type) %>% 
   summarise(mean_wgt = mean(weight, na.rm = TRUE)) %>% 
@@ -163,9 +166,7 @@ number of observations)
 surveys_complete %>% 
   group_by(year, sex, plot_type) %>% 
   summarise(mean_wgt = mean(weight),
-            sd_wgt = sd(weight),
-            n = n(),
-            se_wgt = sd_wgt/sqrt(n)) %>% 
+            se_wgt = sd(weight)/sqrt(n())) %>% 
   ggplot(aes(year, mean_wgt, colour = sex)) +
   geom_ribbon(aes(ymin = mean_wgt - 2*se_wgt, ymax = mean_wgt + 2*se_wgt, fill = sex), 
               alpha = 0.3, colour = NA) +
@@ -183,9 +184,8 @@ surveys_complete %>%
 weights per species in each `plot_type` surveyed. (hint: add a x=y identity line 
 using `geom_abline()`)
 
-```{r, echo=FALSE, warning=FALSE}
-surveys %>% 
-  filter(!is.na(weight) & !is.na(sex)) %>% 
+```{r, warning=FALSE}
+surveys_complete %>% 
   group_by(species_id, plot_type, sex) %>% 
   summarise(mean_wgt = mean(weight)) %>% 
   ungroup() %>% 
@@ -207,7 +207,7 @@ with the x-axis sorted by mean weight.
 (hint: create a colum with the mean weight per species and then use the function 
 `reorder()` to factorise the x-axis variable)
 
-```{r, echo=FALSE}
+```{r}
 surveys_complete %>% 
   group_by(species_id) %>% 
   mutate(mean_weight = mean(weight)) %>% 
@@ -215,7 +215,7 @@ surveys_complete %>%
   mutate(species_id = reorder(species_id, mean_weight)) %>% 
   ggplot(aes(species_id, hindfoot_length)) +
   geom_boxplot(aes(fill = log10(mean_weight))) +
-  scale_fill_viridis_c()
+  scale_fill_viridis_c() # "viridis" is a colour-blind pallete
 ```
 
 ----
