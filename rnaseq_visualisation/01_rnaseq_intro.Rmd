@@ -1,0 +1,128 @@
+---
+title: "Exploratory analysis of RNAseq data"
+author: "Hugo Tavares"
+date: "30 November 2018"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 3
+    highlight: pygments
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, rows.print = 10)
+```
+
+_Note:_ These lessons have been used as an extra in some 
+[Data Carpentry in R](http://www.datacarpentry.org/R-ecology-lesson/) 
+courses, and thus assume that some of those lessons were covered beforehand. 
+
+# Lesson objectives
+
+* Explore methods for exploratory analysis of large datasets
+    * Understand data distribution and correlations in the data
+    * Understand some properties of count data
+    * Apply dimensionality reduction methods to understand structure in data
+* Introducing a `matrix` object and how to convert it to a `tibble`
+* Reformat data from wide to long format (and vice-versa)
+* Join tables
+* Using factors to improve data visualisation
+
+
+# Summary of dataset
+
+In this lesson, we will apply some of the skills that we've gained so far to manipulate 
+and explore a dataset from an RNAseq experiment. 
+
+This lesson uses data from an experiment included in the 
+[`fission` R/Bioconductor package](https://bioconductor.org/packages/release/data/experiment/vignettes/fission/inst/doc/fission.html). 
+Very briefly, we have transcriptome data for:
+
+* Two yeast strains: wild type ("wt") and _atf21del_ mutant ("mut")
+* Each has 6 time points of osmotic stress time (0, 15, 30, 60, 120 and 180 mins)
+* Three replicates for each strain at each time point
+
+Let's say that you did this experiment yourself, and that a bioinformatician 
+analysed it and provided you with four things:
+
+* Raw and normalised read counts for all genes (a measure of the genes' expression)
+* Information about each sample
+* A table with results from a statistical test that assesses the likelihood of 
+your data assuming no difference between the first and last time points of WT cells
+
+
+### Important note
+
+There are many dedicated packages to deal with RNAseq data, mostly 
+within the [Bioconductor](https://bioconductor.org/) package repository. 
+
+**This lesson is not about analysing RNAseq data** (that would be a topic for a whole 
+course!), but rather to show you how the data manipulation principles learned 
+so far can be applied to explore these kind of data. 
+
+If you are doing RNAseq analysis, you should use 
+[dedicated packages and workflows](https://www.bioconductor.org/help/workflows/rnaseqGene/), 
+which implement models to account for particular features of these data.
+
+
+# Getting started
+
+The data are provided within an `RData` file, which you can download and read 
+into your R session.
+
+First, let's clean our workspace (remove any objects created before), 
+and also load the `tidyverse` package. 
+
+It's also a good idea to check if your _working directory_ is correctly set to 
+your workshop folder, which should contain a `data` folder within it (you can 
+use `getwd()` to check your _working directory_).
+
+```{r, eval = FALSE}
+# Clean your workspace by removing any objects created beforehand
+rm(list = ls())
+
+# Load the tidyverse package
+library(tidyverse)
+
+# Download the data provided by your collaborator
+dir.create("data")
+download.file("https://github.com/tavareshugo/data_carpentry_extras/blob/master/rnaseq_visualisation/rnaseq_data.RData?raw=true",
+              destfile = "data/rnaseq_data.RData",
+              method = "wb")
+
+# Load the data
+load("data/rnaseq_data.RData")
+```
+
+```{r, echo = FALSE, message = FALSE}
+# In the repository data is read from the current directory
+# Load the tidyverse package
+library(tidyverse)
+
+# Load the data
+load("fission_data.RData")
+```
+
+----
+
+**Exercise:**
+
+> Familiarise yourself with these data:
+>
+> - what kind of objects were you provided with? (hint: `class()`)
+> - How many samples did you have?
+> - How many genes do you have gene expression levels for?
+> - How many genes were differentially expressed at the 5% false-discovery rate?
+> - After looking at these data and their formats, think about the steps you'd have
+to take in order to produce the graphs above.
+
+----
+
+Now that you have these data, you want to do two things:
+
+* [Gain an understanding about these data and how the stress treatment and genotype 
+affect the transcritome](https://htmlpreview.github.io/?https://github.com/tavareshugo/data_carpentry_extras/blob/master/rnaseq_visualisation/rnaseq_visualisation.html)
+* Visualise the expression of a subset of potentially interesting genes
+
