@@ -93,7 +93,7 @@ download.file("https://github.com/tavareshugo/data_carpentry_extras/blob/master/
               method = "wb")
 
 # Load the data
-load("data/rnaseq_data.RData")
+load("data/fission_data.RData")
 ```
 
 ```{r, echo = FALSE, message = FALSE}
