@@ -1,0 +1,402 @@
+---
+title: "Exploratory analysis of RNAseq data"
+author: "Hugo Tavares"
+date: "30 November 2018"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 3
+    highlight: pygments
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, rows.print = 10)
+```
+
+
+```{r, echo = FALSE, message = FALSE}
+# In the repository data is read from the current directory
+# Load the tidyverse package
+library(tidyverse)
+
+# Load the data
+load("fission_data.RData")
+```
+
+# Exploring expression value distributions
+
+We will start our data exploration by understanding how our expression data are 
+distributed. We will do this using frequency polygons (similar to histograms) 
+for our expression data found in the `norm_cts` object.
+
+```{r, echo=FALSE}
+norm_cts %>%
+  as_tibble(rownames = "gene") %>% 
+  gather("sample", "cts", -gene) %>% 
+  left_join(sample_info, by = "sample") %>% 
+  ggplot(aes(cts, colour = replicate)) + 
+  geom_freqpoly(binwidth = 1) + 
+  facet_grid(strain ~ minute)
+```
+
+
+To produce the plot above, we need to do a few things:
+
+1. Convert the matrix of normalised counts to a `tibble` object
+2. Convert that table to "long" format, i.e. with 3 columns: `gene`, `sample_id`,
+`cts`, rather than one column per sample
+3. Join this table with the `sample_info` table 
+
+
+### Matrix object
+
+You might have noticed that `norm_cts` is a `matrix` object. We haven't found 
+these before, and to produce either plot, it is convenient to start by converting 
+our matrix of gene expression to a `tibble` (`data.frame`).
+
+Matrices are a bit similar to `data.frame`, but they only contain values of a 
+single type, in this case numeric values (whereas in a `data.frame` different 
+columns can contain different types of data). 
+
+```{r}
+# Look at the first 10 rows and first 5 samples of norm_cts
+norm_cts[1:10, 1:5]
+```
+
+You will also notice that gene names are contained in the row names of this 
+matrix. 
+
+To convert this matrix into a `tibble` object we can use the function `as_tibble()`:
+
+```{r}
+# Convert matrix to tibble
+as_tibble(norm_cts)
+```
+
+But now we've lost our gene names! 
+If we look at the function's help (`?as_tibble`), we can see that there's a way 
+to solve this problem:
+
+```{r}
+# Convert matrix to tibble - add colnames to a new column called "gene"
+norm_cts_tbl <- as_tibble(norm_cts, rownames = "gene")
+norm_cts_tbl
+```
+
+----
+
+**Exercise:**
+
+* Convert the `raw_cts` matrix to a tibble and save it into a new object called `raw_cts_tbl`
+
+----
+
+### Reshaping data to "long" format
+
+There's two functions that allow us to convert tables from a "wide" to a "long" 
+format and vice-versa: `gather()` and `spread()`.
+
+![](http://www.datacarpentry.org/R-ecology-lesson/img/spread_data_R.png)
+
+![](http://www.datacarpentry.org/R-ecology-lesson/img/gather_data_R.png)
+
+If you notice, what we want in our case is to `gather` our gene expression 
+columns. We can do this by giving `gather()` four things:
+
+* The data, i.e. our table of gene expression
+* A name for the new column that will contain the old column names (the "key" column)
+* A name for the new column that will contain our expression counts (the "values" column)
+* The names of the columns that we want to gather in this way
+
+Like so:
+
+```{r}
+# "gather" the counts data
+norm_cts_long <- norm_cts_tbl %>% 
+  gather("sample", "cts", wt_0_r1:mut_180_r3)
+
+norm_cts_long
+```
+
+If we wanted to do the reverse, we could use the `spread()` function:
+
+```{r}
+norm_cts_long %>% 
+  spread(sample, cts)
+```
+
+(see [here](http://www.datacarpentry.org/R-ecology-lesson/03-dplyr.html#reshaping_with_gather_and_spread)
+for another example of using these functions)
+
+----
+
+**Exercise:**
+
+* Convert the `raw_cts_tbl` created above to a "long" format using the `gather()` function
+
+----
+
+### Joining tables together
+
+The next thing we want to do is to add information about each sample to our 
+gene expression table.
+
+```{r}
+sample_info
+```
+
+We can do this by _joining_ the `norm_cts_long` table with the `sample_info` table.
+
+Joining tables is an important task that is often needed in multi-layered data.
+
+There are several different kinds of joins that can be performed. Look 
+at the "Combine Data Sets" section of the 
+[dplyr cheatsheet](https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf) 
+to understand them better.
+
+In our case, we know that all samples in our counts table also occur in the `sample_info` 
+table, so there's a few different kinds of joins that would work. 
+
+For safety, let's use `full_join()`, to ensure we retain all data:
+
+```{r}
+norm_cts_long <- full_join(norm_cts_long, sample_info, by = ("sample"))
+
+norm_cts_long
+```
+
+Notice how, in this case, the columns we wanted to be matched between the two 
+tables had different names. Also, we can join tables by more than one 
+column, which is not necessary here.
+
+
+### Visualise data distribution
+
+Now that we have our expression data in a "tidy" format, we can explore our 
+gene's expression distribution:
+
+```{r}
+norm_cts_long %>%
+  ggplot(aes(cts, colour = replicate)) + 
+  geom_freqpoly(binwidth = 1) + 
+  facet_grid(strain ~ minute)
+```
+
+----
+
+**Exercise:**
+
+* Try out other ways to visualise these data, for example as a boxplot of expression data
+
+----
+
+
+# Exploring gene expression correlations between samples
+
+Scatter plots are useful e.g. to visually inspect similarity (correlation) between variables.
+
+For this type of plot, the "spread" version of our counts table is useful. For example, 
+let's look at the correlation between two replicates of WT at 0 min:
+
+```{r}
+norm_cts_tbl %>% 
+  ggplot(aes(wt_0_r1, wt_0_r2)) + geom_point() +
+  geom_abline(colour = "brown")
+```
+
+As we can see, these are very tightly correlated, which might be expected given these 
+are biological replicates of the same strain and treatment! 
+
+----
+
+**Exercise:**
+
+* Compare the expression between a WT cell at T0 and T30. What can you conclude from 
+this?
+
+----
+
+Because we have so many samples, it would be nice to get an overview of the correlation 
+across all samples. One way to do this is with a correlation plot. The `corrr` 
+package provides with several convenience functions to calculate and visualise 
+correlations. We won't go into details in this lesson, but please check the 
+[package's documentation](https://cran.r-project.org/web/packages/corrr/vignettes/using-corrr.html). 
+Here is a quick example:
+
+```{r}
+library(corrr)
+correlate(norm_cts, method = "spearman") %>% 
+  rplot() + 
+  theme(axis.text.x = element_text(angle = 90))
+```
+
+
+# Explore properties of the data normalization applied
+
+So far we have looked at RNA-Seq data that has been preprocessed for us (`norm_cts`) 
+using a sophisticated method (`DESeq2`). 
+
+In the following, we will also take a look at the raw data (`raw_cts`) and compare 
+these to the normalized version to explore some properties of the data normalization applied.
+
+Make sure that you have a "tidy" version of these raw counts:
+
+```{r}
+raw_cts_tbl <- as_tibble(raw_cts, rownames = "gene")
+raw_cts_long <- raw_cts_tbl %>% 
+  gather(sample, cts, -gene)
+```
+
+The summary function is quite handy here as a first approach to exploring differences 
+between raw and normalized counts.
+
+```{r}
+summary(raw_cts_long$cts)
+summary(norm_cts_long$cts)
+```
+
+Raw and normalized data live on VERY different scales - the `raw_cts_long` has a 
+few very large count values while most values are comparatively small. Partially,
+this is because the normalised counts are on a log-scale. Let's visualise 
+the correlation between two samples like we did above, but for raw counts:
+
+```{r}
+raw_cts_tbl %>% 
+  ggplot(aes(wt_0_r1, wt_0_r2)) + 
+  geom_point()
+```
+
+As you see, the range of values is very large and we can hardly see the relationship 
+between these counts. You can change the axis scales of the plot:
+
+```{r}
+raw_cts_tbl %>% 
+  ggplot(aes(wt_0_r1 + 1, wt_0_r2 + 1)) + 
+  geom_point() +
+  scale_x_log10() + scale_y_log10()
+```
+
+From this, we can already see that the raw data seem more variable (especially 
+for low values) than the normalised data. Let's examine the relationship between 
+mean and variance of each gene across all samples:
+
+```{r}
+raw_cts_long %>% 
+  group_by(gene) %>% 
+  summarise(mean_cts = mean(cts),
+            var_cts = var(cts)) %>% 
+  ggplot(aes(mean_cts, var_cts)) +
+  geom_point() +
+  scale_x_log10() + scale_y_log10()
+```
+
+This positive relationship between mean and variance is very typical of count data, 
+and this is why you need to be careful to apply specialised statistical methods 
+(such as those provided by `DESeq2`) that model these properties of the data.
+
+Compare this with the normalised data:
+
+```{r}
+norm_cts_long %>% 
+  group_by(gene) %>% 
+  summarise(mean_cts = mean(cts),
+            var_cts = var(cts)) %>% 
+  ggplot(aes(mean_cts, var_cts/mean_cts)) +
+  geom_point()
+```
+
+In conclusion, these mean-variance plots verify that `DESeq2`'s normalization 
+approach is effectively achieving its main goal: to stabilize the variance, as 
+the normalised data do no longer show a (strong) dependency between a gene’s mean 
+and its variance.
+
+
+# Exploring the effects of genotype and stress on the transcritpome
+
+Having expression data for thousands of genes can be overwhelming to explore! 
+This is a good example of a multi-dimensional dataset. Here, we have many 
+variables (genes) that we want to use to understand our samples (yeast cells).
+
+There are several methods to help in summarising multi-dimensional data, here 
+we will show how to use PCA (principal component analysis). 
+
+PCA is a transformation of high-dimensional data into an orthogonal basis such that 
+first principal component (PC, aka "axis"") is aligned with the largest source of 
+variance, the second PC to the largest remaining source of variance and so on. 
+This makes high-dimensional data more amenable to visual exploration, as we can 
+examine projections to the first two (or few) PCs.
+
+To compute a PCA in R we can use the `prcomp()` function. This function can take a 
+matrix of data, where the _columns_ are the variables that we want to use to 
+transform our _samples_, which shoul be the _rows_ of the matrix. 
+
+In our case, we want to look for similarities across our yeast cells (_samples_ = _rows_) 
+based on gene expression (_variables_ = _columns_). For that reason, we need 
+to provide a _transposed_ version of our table to the `prcomp()` function:
+
+```{r}
+sample_pca <- prcomp(t(norm_cts))
+```
+
+The output from this command contains several pieces of information, namely:
+* eigenvectors
+* eigenvalues
+* PC scores
+
+We can access these pieces of data using convenient functions from the `broom` 
+package:
+
+
+```{r}
+library(broom)
+tidy(sample_pca, matrix = "samples")    # PC scores for our yeast samples
+tidy(sample_pca, matrix = "variables")  # variable loadings (eigen vectors) for genes that were used as variables in PCA
+tidy(sample_pca, matrix = "pcs")        # PC variances (eigen values)
+```
+
+```{r}
+augment(sample_pca) %>% 
+  full_join(sample_info, by = c(".rownames" = "sample")) %>% 
+  ggplot(aes(.fittedPC1, .fittedPC2)) + 
+  geom_point(aes(colour = minute, shape = strain))
+```
+
+We can see the proportion of variance explained by each PC axis:
+
+```{r}
+broom::tidy(sample_pca, matrix = "pcs") %>%
+  ggplot(aes(PC, percent)) +
+  geom_col() +
+  geom_line(aes(y = cumulative)) + geom_point(aes(y = cumulative))
+```
+
+And we can also look at the "influence" that each of the genes has on our PC axis.
+This is given by the eigen vectors (the squared value of eigen vector gives you the 
+correlation between the PC axis and the respective variable).
+
+This plot is a bit more challenging to do, because we have so many genes! Here's 
+one possibility:
+
+```{r}
+# Extract genes with highest loadings on PC1 and PC2
+top_genes <- tidy(sample_pca, matrix = "variables") %>%  # get table of eigen vectors
+  filter(PC %in% 1:2) %>%                   # retain only PC1 and PC2
+  group_by(PC) %>%                          # for each PC
+  arrange(desc(value)) %>%                  # sort table by descending value
+  slice(1:10) %>%                           # take top 10 rows of each PC group
+  pull(column) %>%                          # extract the column (gene name) from the table
+  unique()                                  # retain unique gene names only
+
+# Plot eigen vectors for these genes
+tidy(sample_pca, matrix = "variables") %>%  # get table of eigen vectors
+  filter(column %in% top_genes & PC %in% 1:2) %>%  # retain only genes and PCs of interest
+  mutate(PC = paste0("PC", PC)) %>%                # add "PC" suffix to this variable
+  spread(PC, value) %>% 
+  ggplot() +
+  geom_segment(aes(x = 0, y = 0, xend = PC1, yend = PC2), arrow = arrow(),
+               colour = "brown") +
+  geom_text(aes(x = PC1, y = PC2, label = column))
+```
+
