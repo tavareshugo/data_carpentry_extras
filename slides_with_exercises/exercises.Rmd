@@ -8,11 +8,14 @@ output:
     highlight: pygments
     df_print: kable
     code_folding: hide
+    number_sections: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+[back to course's homepage](https://tavareshugo.github.io/2018-12-03-bioinformatics_for_biologists/)
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
@@ -20,21 +23,181 @@ surveys <- read_csv("https://ndownloader.figshare.com/files/2292169")
 ```
 
 
+# Intro
+
 ----
 
-## Ex 1
+## Variables
+
+What is the value of `mass_index` after running these commands?
+
+```
+mass <- 47.5
+age  <- 122
+mass_index <- mass/age
+mass <- mass * 2.0
+```
+
+What type of vector do you get in each of the following cases (hint: use `class()`)?
+
+```
+num_char <- c(1, 2, 3, "a")
+num_logical <- c(1, 2, 3, TRUE)
+char_logical <- c("a", "b", "c", TRUE)
+tricky <- c(1, 2, 3, "4")
+```
+
+----
+
+## Conditional subsetting
+
+Using this vector:
+
+```
+heights <- c(63, 69, 60, 65, NA, 68, 61, 70, 61, 59, 64, 69, 63, 63, NA, 72, 65, 64, 70, 63, 65)
+```
+
+```{r, echo=FALSE}
+heights <- c(63, 69, 60, 65, NA, 68, 61, 70, 61, 59, 64, 69, 63, 63, NA, 72, 65, 64, 70, 63, 65)
+```
+
+* create a new vector with missing values removed
+
+```{r, results=FALSE}
+heights_no_na <- heights[!is.na(heights)]
+```
+
+* calculate the median of heights
+
+```{r, results=FALSE}
+median(heights, na.rm = TRUE)
+# or
+median(heights_no_na)
+```
+
+* calculate how many values are above 67
+
+```{r, results=FALSE}
+sum(heights_no_na > 67)
+```
+
+----
+
+## Basic `data.frame` manipulation
+
+* How many rows and columns does `surveys` have? (hint: functions `ncol()` and `nrow()`)
+
+```{r, results=FALSE}
+nrow(surveys)
+ncol(surveys)
+```
+
+* What type of variables do you have in the table? (hint: function `glimpse()`)
+
+```{r, results=FALSE}
+glimpse(surveys)
+```
+
+4. How many missing values of weight are there? (remember you can use `sum()` on a logical vector)
+    * extra: what proportion of values are missing?
+    
+```{r, results=FALSE}
+sum(is.na(surveys$weight))
+
+# Extra: divide by total number of observations
+sum(is.na(surveys$weight))/nrow(surveys)
+```
+
+5. How many unique genera were sampled? (hint: functions `unique()` and `length()`)
+
+```{r, results=FALSE}
+length(unique(surveys$genus))
+```
+
+
+# Manipulating data frames with `dplyr`
+
+----
+
+## filter and select
+
+Using pipes, subset the surveys data to include animals collected before 1995 and 
+retain only the columns year, sex, and weight. 
+
+```{r}
+surveys_pre1995 <- surveys %>% 
+  filter(year < 1995) %>% 
+  select(year, sex, weight)
+```
+
+The answer should have `r nrow(surveys_pre1995)` rows of data.
+
+----
+
+## mutate, filter and select
+
+Create a new data frame from the surveys data that meets the following criteria: 
+contains only the `species_id` column and a new column called `hindfoot_half` 
+containing values that are half the `hindfoot_length` values. 
+In this `hindfoot_half` column, there are no `NAs` and all values are less than 30.
+
+Hint: think about how the commands should be ordered to produce this data frame!
+
+```{r}
+surveys_hindfoot_half <- surveys %>%
+    filter(!is.na(hindfoot_length)) %>%
+    mutate(hindfoot_half = hindfoot_length / 2) %>%
+    filter(hindfoot_half < 30) %>%
+    select(species_id, hindfoot_half)
+```
+
+The answer should have `r nrow(surveys_hindfoot_half)` rows and `r ncol(surveys_hindfoot_half)` columns.
+
+
+----
+
+## grouped summaries
 
 * How many animals were caught in each `plot_type` surveyed?
+
+```{r, results=FALSE}
+surveys %>%
+    count(plot_type) 
+```
+
 * Make a summary table with the mean, minimum and maximum hindfoot length of each.
 Include the total number of individuals observed as well as the number of those 
 individuals that had data for this variable.
+
+```{r, results=FALSE}
+surveys %>%
+    filter(!is.na(hindfoot_length)) %>%
+    group_by(species_id) %>%
+    summarize(
+        mean_hindfoot_length = mean(hindfoot_length),
+        min_hindfoot_length = min(hindfoot_length),
+        max_hindfoot_length = max(hindfoot_length),
+        n = n(),
+        n_hindfoot = sum(!is.na(hindfoot_length))
+    )
+```
+
 * What was the heaviest animal measured in each year? Return the columns `year`, 
 `genus`, `species_id` and `weight`.
+
+```{r, results=FALSE}
+surveys %>%
+    filter(!is.na(weight)) %>%
+    group_by(year) %>%
+    filter(weight == max(weight)) %>%
+    select(year, genus, species, weight) %>%
+    arrange(year)
+```
 
 
 ----
 
-## Ex 2
+## Data cleaning
 
 * Create a new data frame called `surveys_complete`, which:
     * has no missing values for `weight`, `hindfoot_length` and `sex`
@@ -54,10 +217,19 @@ surveys_complete <- surveys_complete %>%
 
 The final data frame should have `r nrow(surveys_complete)` rows.
 
+* Optional: save the new table as a CSV file in the `data_output` folder of your 
+project directory.
+
+```{r, eval=FALSE}
+write_csv(surveys_complete, "data_output/surveys_complete.csv")
+```
+
+
+# Plotting with `ggplot2`
 
 ----
 
-## Ex 3
+## distributions
 
 Boxplots are useful summaries, but hide the shape of the distribution. 
 For example, if the distribution is bimodal, we would not see it in a boxplot. 
@@ -65,9 +237,33 @@ An alternative to the boxplot is the violin plot, where the shape
 (of the density of points) is drawn.
 
 * Use `geom_violin()` to create violin plots of weight distributions for each `genus`
+
+```{r, results=FALSE}
+surveys_complete %>% 
+  ggplot(aes(genus, weight)) +
+  geom_violin()
+```
+
 * Some individuals are much heavier than others. Using a log scale in this case would help.
 Try adding a "scale" layer with `scale_y_log10()`. 
+
+```{r, results=FALSE}
+surveys_complete %>% 
+  ggplot(aes(genus, weight)) +
+  geom_violin() +
+  scale_y_log10()
+```
+
 * Can you overlay a boxplot with outliers removed (check `?geom_boxplot` help)?
+
+```{r, results=FALSE}
+surveys_complete %>% 
+  ggplot(aes(genus, weight)) +
+  geom_violin() +
+  geom_boxplot(width = 0.2, outlier.shape = NA) +
+  scale_y_log10()
+```
+
 * Try and recreate the picture below, showing the distribution of weights by `species_id`,
 with violin plots coloured by `genus`.
 
@@ -81,56 +277,63 @@ surveys_complete %>%
 
 ----
 
-## Ex 4
+## Two categorical variables
 
-Make a visual representation of the number of observations we have of each genus 
-in each plot type. (hint: try the `size` aesthetic with `geom_point()`)
+Use the `count()` function to get the number of individuals of each genus in 
+each plot type surveyed and then use that table to make a visual representation 
+like the one shown below. 
+
+(hint: try the `size` aesthetic with `geom_point()`)
 
 ```{r}
-surveys_complete %>% 
+surveys_complete %>%
+  count(genus, plot_type) %>% 
   ggplot(aes(genus, plot_type)) +
-  geom_count() +
+  geom_point(aes(size = n)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   labs(x = "Genus", y = "Plot Type")
 ```
 
-
 ----
 
-## Ex 5
+## Line plots
 
 We want to explore if the species diversity (number of different species) changed 
 across the years in different plot treatments (`plot_type`). 
 
 * Make a new table called `yearly_diversity`, with the number of _distinct_ 
 `species_id` sampled in each year and plot type. 
-(hint: see the function `n_distinct()` to use inside the `summarise()` function)
-* Using the new table, try and reproduce the plot below
-* Update your summary table by also including information about sex (i.e. species 
-diversity per `year`, `plot_type` and `sex`). Can you think of ways to change 
-your previous plot to also visualise this extra information?
+
+(hint: use the function `n_distinct()` inside the `summarise()` function)
 
 ```{r}
-surveys_complete %>% 
+yearly_diversity <- surveys_complete %>% 
   group_by(year, plot_type) %>% 
   summarise(n_species = n_distinct(species_id)) %>% 
+  ungroup()
+```
+  
+* Using the new table, try and reproduce the plot below
+
+```{r}
+yearly_diversity %>% 
   ggplot(aes(year, n_species)) +
   geom_line(aes(colour = plot_type)) +
   labs(colour = "Plot Type", x = "Year", y = "# species")
 ```
 
-----
+* Update your summary table by also including information about sex (i.e. species 
+diversity per `year`, `plot_type` and `sex`). Can you think of ways to change 
+your previous plot to also visualise this extra information?
 
-## Ex 6
-
-* Using your `yearly_diversity` table, recreate the plot below.
-* Can you change the order of the panels so that M appears on top?
-
-```{r}
+```{r, echo=FALSE}
+# Add `sex` to the group_by call
 yearly_diversity <- surveys_complete %>% 
-  group_by(year, sex, plot_type) %>% 
-  summarise(n_species = n_distinct(species_id))
+  group_by(year, plot_type, sex) %>% 
+  summarise(n_species = n_distinct(species_id)) %>% 
+  ungroup()
 
+# Improve visualisation by faceting the plot horizontally
 yearly_diversity %>% 
   ggplot(aes(year, n_species)) +
   geom_line(aes(colour = plot_type)) +
@@ -141,20 +344,60 @@ yearly_diversity %>%
 
 ----
 
-## Ex 7
+## Factors to improve visualisation
+
+* Using your `yearly_diversity` table, can you recreate the plot below, ensuring 
+the order of the `sex` facets is as shown ("M" appears on top)?
+
+```{r}
+yearly_diversity %>% 
+  mutate(sex = factor(sex, levels = c("M", "F"))) %>% 
+  ggplot(aes(year, n_species)) +
+  geom_line(aes(colour = plot_type)) +
+  labs(colour = "Plot Type", x = "Year", y = "# species") +
+  facet_grid(sex ~ .)
+```
+
+
+# Optional (advanced) plotting exercises
+
+----
+
+## Line plots
 
 Use line plots to help you explore these questions:
 
 * How did the average weight of all species change across the years?
+
+```{r, results=FALSE}
+surveys_complete %>% 
+  group_by(year) %>% 
+  summarise(mean_wgt = mean(weight, na.rm = TRUE)) %>% 
+  ggplot(aes(year, mean_wgt)) +
+  geom_line() + geom_point() +
+  labs(x = "Year", y = "Average biomass (g)")
+```
+
 * Was it different for males and females? 
+
+```{r, results=FALSE}
+surveys_complete %>% 
+  group_by(year, sex) %>% 
+  summarise(mean_wgt = mean(weight, na.rm = TRUE)) %>% 
+  ggplot(aes(year, mean_wgt, colour = sex)) +
+  geom_line() + geom_point() + 
+  labs(x = "Year", y = "Average biomass (g)")
+```
+
 * What about between different `plot_type`? (hint: use facetting to help you)
 
-```{r, eval=FALSE}
+```{r, results=FALSE}
 surveys_complete %>% 
   group_by(year, sex, plot_type) %>% 
   summarise(mean_wgt = mean(weight, na.rm = TRUE)) %>% 
   ggplot(aes(year, mean_wgt, colour = sex)) +
-  geom_line() + geom_point() + facet_wrap(~ plot_type) +
+  geom_line() + geom_point() + 
+  facet_wrap(~ plot_type) +
   labs(x = "Year", y = "Average biomass (g)")
 ```
 
@@ -178,7 +421,7 @@ surveys_complete %>%
 
 ----
 
-## Ex 8
+## Reshaping data
 
 * Make a scatterplot to explore the correlation between average male and female 
 weights per species in each `plot_type` surveyed. (hint: add a x=y identity line 
@@ -200,7 +443,7 @@ surveys_complete %>%
 
 ----
 
-## Ex 9
+## Reordering factors
 
 * Make a boxplot similar to the one below, showing the hindfoot length distribution, 
 with the x-axis sorted by mean weight. 
@@ -220,7 +463,7 @@ surveys_complete %>%
 
 ----
 
-## Ex 10
+## Combining datasets
 
 In a publication from [Ernest et al. 2017](https://www.journals.uchicago.edu/doi/10.1086/592402) 
 some species where classified according to their habitat preferences. 
@@ -231,14 +474,14 @@ Read this information into your R session using the following command:
 habitat_pref <- read_csv("https://raw.githubusercontent.com/tavareshugo/data_carpentry_extras/master/slides_with_exercises/species_habitat_affinities_Ernest2017.csv")
 ```
 
-```{r, message=FALSE}
+```{r, message=FALSE, echo=FALSE}
 habitat_pref <- read_csv("https://raw.githubusercontent.com/tavareshugo/data_carpentry_extras/master/slides_with_exercises/species_habitat_affinities_Ernest2017.csv")
 ```
 
 * How many of these species are contained in your `surveys_complete` dataset? (hint: 
 the function `paste()` might be useful)
 
-```{r, eval=FALSE}
+```{r, results=FALSE}
 sum(habitat_pref$species %in% paste(surveys_complete$genus, surveys_complete$species))
 ```
 
@@ -257,10 +500,6 @@ surveys_complete %>%
   scale_y_log10()
 ```
 
-
-----
-
-## Ex 11
 
 * Plot the change in abundance across the years for species with different habitat 
 affinities (include those species with no habitat information as well). 
