@@ -347,7 +347,7 @@ yearly_diversity %>%
 ## Factors to improve visualisation
 
 * Using your `yearly_diversity` table, can you recreate the plot below, ensuring 
-the order of the `sex` facets is as shown ("M" appears on top)?
+the order of the `plot_type` facets is as shown?
 
 ```{r}
 # Make a vector with treatments in desired order
