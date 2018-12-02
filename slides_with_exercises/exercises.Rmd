@@ -350,12 +350,19 @@ yearly_diversity %>%
 the order of the `sex` facets is as shown ("M" appears on top)?
 
 ```{r}
+# Make a vector with treatments in desired order
+## this is optional, but makes it easier to read the code
+plot_type_order <- c("Control", 
+                     "Short-term Krat Exclosure", "Long-term Krat Exclosure",
+                     "Rodent Exclosure", "Spectab exclosure")
+
+# Factorise the `plot_type` variable with custom levels before plotting
 yearly_diversity %>% 
-  mutate(sex = factor(sex, levels = c("M", "F"))) %>% 
+  mutate(plot_type = factor(plot_type, levels = plot_type_order)) %>% 
   ggplot(aes(year, n_species)) +
-  geom_line(aes(colour = plot_type)) +
+  geom_line(aes(colour = sex)) +
   labs(colour = "Plot Type", x = "Year", y = "# species") +
-  facet_grid(sex ~ .)
+  facet_wrap( ~ plot_type)
 ```
 
 
