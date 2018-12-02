@@ -1,3 +1,6 @@
-This repository contains extra materials for Data Carpentry courses.
+This repository contains extra materials to help in Data Carpentry courses.
 
-* [Joins and visualisation of RNAseq data](https://rawgit.com/tavareshugo/data_carpentry_extras/master/rnaseq_visualisation/rnaseq_visualisation.html)
+* [Exercises](slides_with_exercises/exercises.html) (including extra/advanced exercises)
+* [Recap of intro materials](recap_intro_r/recap_intro_r.html) (useful to start day 2)
+* [Syntax equivalent between "base R" and "dplyr"](base-r_tidyverse_equivalents/base-r_tidyverse_equivalents.html)
+

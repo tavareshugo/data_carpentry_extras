@@ -15,7 +15,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-[back to course's homepage](https://tavareshugo.github.io/2018-12-03-bioinformatics_for_biologists/)
+[back to course materials](https://datacarpentry.org/R-ecology-lesson/index.html)
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 library(tidyverse)
