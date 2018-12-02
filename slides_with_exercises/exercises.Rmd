@@ -238,7 +238,7 @@ An alternative to the boxplot is the violin plot, where the shape
 
 * Use `geom_violin()` to create violin plots of weight distributions for each `genus`
 
-```{r, results=FALSE}
+```{r, eval=FALSE}
 surveys_complete %>% 
   ggplot(aes(genus, weight)) +
   geom_violin()
@@ -247,7 +247,7 @@ surveys_complete %>%
 * Some individuals are much heavier than others. Using a log scale in this case would help.
 Try adding a "scale" layer with `scale_y_log10()`. 
 
-```{r, results=FALSE}
+```{r, eval=FALSE}
 surveys_complete %>% 
   ggplot(aes(genus, weight)) +
   geom_violin() +
@@ -256,7 +256,7 @@ surveys_complete %>%
 
 * Can you overlay a boxplot with outliers removed (check `?geom_boxplot` help)?
 
-```{r, results=FALSE}
+```{r, eval=FALSE}
 surveys_complete %>% 
   ggplot(aes(genus, weight)) +
   geom_violin() +
