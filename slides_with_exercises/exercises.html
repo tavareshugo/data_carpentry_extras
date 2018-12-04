@@ -369,15 +369,14 @@ tricky &lt;- c(1, 2, 3, &quot;4&quot;)</code></pre>
 <li>Make a summary table with the mean, minimum and maximum hindfoot length of each species. Include the total number of individuals observed as well as the number of those individuals that had data for this variable.</li>
 </ul>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">surveys <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">is.na</span>(hindfoot_length)) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">group_by</span>(species_id) <span class="op">%&gt;%</span>
-<span class="st">    </span><span class="kw">summarize</span>(
-        <span class="dt">mean_hindfoot_length =</span> <span class="kw">mean</span>(hindfoot_length),
-        <span class="dt">min_hindfoot_length =</span> <span class="kw">min</span>(hindfoot_length),
-        <span class="dt">max_hindfoot_length =</span> <span class="kw">max</span>(hindfoot_length),
-        <span class="dt">n =</span> <span class="kw">n</span>(),
-        <span class="dt">n_hindfoot =</span> <span class="kw">sum</span>(<span class="op">!</span><span class="kw">is.na</span>(hindfoot_length))
-    )</code></pre></div>
+<span class="st">  </span><span class="kw">group_by</span>(species_id) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(
+    <span class="dt">mean_hindfoot_length =</span> <span class="kw">mean</span>(hindfoot_length, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>),
+    <span class="dt">min_hindfoot_length =</span> <span class="kw">min</span>(hindfoot_length, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>),
+    <span class="dt">max_hindfoot_length =</span> <span class="kw">max</span>(hindfoot_length, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>),
+    <span class="dt">n =</span> <span class="kw">n</span>(),
+    <span class="dt">n_hindfoot =</span> <span class="kw">sum</span>(<span class="op">!</span><span class="kw">is.na</span>(hindfoot_length))
+  )</code></pre></div>
 <ul>
 <li>What was the heaviest animal measured in each year? Return the columns <code>year</code>, <code>genus</code>, <code>species_id</code> and <code>weight</code>.</li>
 </ul>
