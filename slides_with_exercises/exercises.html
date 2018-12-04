@@ -277,7 +277,7 @@ div.tocify {
 <h2><span class="header-section-number">1.1</span> Variables</h2>
 <p>What is the value of <code>mass_index</code> after running these commands?</p>
 <pre><code>mass &lt;- 47.5
-age  &lt;- 122
+age  &lt;- 100
 mass_index &lt;- mass/age
 mass &lt;- mass * 2.0</code></pre>
 <p>What type of vector do you get in each of the following cases (hint: use <code>class()</code>)?</p>
@@ -366,7 +366,7 @@ tricky &lt;- c(1, 2, 3, &quot;4&quot;)</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">surveys <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">count</span>(plot_type) </code></pre></div>
 <ul>
-<li>Make a summary table with the mean, minimum and maximum hindfoot length of each. Include the total number of individuals observed as well as the number of those individuals that had data for this variable.</li>
+<li>Make a summary table with the mean, minimum and maximum hindfoot length of each species. Include the total number of individuals observed as well as the number of those individuals that had data for this variable.</li>
 </ul>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">surveys <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">is.na</span>(hindfoot_length)) <span class="op">%&gt;%</span>

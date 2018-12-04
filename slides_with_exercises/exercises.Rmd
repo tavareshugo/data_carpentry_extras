@@ -33,7 +33,7 @@ What is the value of `mass_index` after running these commands?
 
 ```
 mass <- 47.5
-age  <- 122
+age  <- 100
 mass_index <- mass/age
 mass <- mass * 2.0
 ```
@@ -165,7 +165,7 @@ surveys %>%
     count(plot_type) 
 ```
 
-* Make a summary table with the mean, minimum and maximum hindfoot length of each.
+* Make a summary table with the mean, minimum and maximum hindfoot length of each species.
 Include the total number of individuals observed as well as the number of those 
 individuals that had data for this variable.
 
