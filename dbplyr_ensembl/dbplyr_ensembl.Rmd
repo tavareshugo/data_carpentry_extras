@@ -1,0 +1,174 @@
+---
+title: "Connecting to ENSEMBL database using `dbplyr`"
+author: "Hugo Tavares"
+date: "24 January 2019"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 3
+    highlight: pygments
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This document exemplifies how the `dbplyr` package can be used to interact with 
+a remote (public) database. 
+
+We will access data from _[ENSEMBL](https://www.ensembl.org/index.html)_
+as an example. _ENSEMBL_ hosts a variety of data on many organisms such as genome 
+assemblies, gene annotations, variants, and comparative genomics. 
+
+
+# Connecting to _ENSEMBL_ database
+
+Before we connect to a database we need to know:
+
+* what _type_ of database system it is (e.g. SQLite, MySQL, PostgreSQL, ...)
+* any credentials needed to connect to that database (a username, password, etc)
+
+A web-search for "public ENSEMBL datase" takes us to [this page](https://www.ensembl.org/info/data/mysql.html)
+which gives all this information:
+
+* _ENSEMBL_ uses _MySQL_ or _MariaDB_ databases to store its information (these two 
+are kind of like "cousins" of each other... sorry, it's confusing, but for our purposes they are identical)
+* There are several public servers referring to different versions of the databases 
+and different types of information, we pick the top one in the table at the bottom 
+of that page
+
+We start by loading the necessary packages, which include the `RMariaDB` package, 
+which allows us to connect to either _MySQL_ or _MariaDB_ databases:
+
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(dbplyr)
+library(RMariaDB)  # note this replaces RMySQL package which is being discontinued
+```
+
+Then, we use the information from the [ENSEMBL page](https://www.ensembl.org/info/data/mysql.html)
+to make our connection:
+
+```{r}
+ensembl_con <- dbConnect(MariaDB(),
+                         host = "ensembldb.ensembl.org", 
+                         user = "anonymous",
+                         port = 5306,
+                         password = "")
+```
+
+In reality, _ENSEMBL_ hosts many databases, for different types of information. 
+And each of those databases itself has many many tables. Details can be found 
+on [this page](https://www.ensembl.org/info/docs/api/index.html).
+
+To see which databases are available for us to pick one and connect to, we 
+can use this command:
+
+```{r, eval = FALSE}
+dbGetQuery(ensembl_con, "SHOW DATABASES")
+```
+
+Wow, there are almost 9k databases that we can pick from! (_ENSEMBL_ is a big infrastructure 
+after all...). Let's focus on the [Comparative Genomics](https://www.ensembl.org/info/docs/api/compara/compara_schema.html)
+set of databases (they are called "compara"):
+
+```{r}
+dbGetQuery(ensembl_con, "SHOW DATABASES") %>% 
+  # filter the table for cases where the the string "compara" is present
+  filter(str_detect(Database, "compara")) %>% 
+  tail()
+```
+
+We still get many versions of this type of databases - these refer to the different 
+versions of the database. Let's pick the most recent one and connect to that one:
+
+```{r}
+# This is similar to before, except now we are specifying the dbname
+compara_con <- dbConnect(MariaDB(),
+                         dbname = "ensembl_compara_95",
+                         host = "ensembldb.ensembl.org", 
+                         user = "anonymous",
+                         port = 5306,
+                         password = "")
+```
+
+
+# Querying individual database tables
+
+From here on, we can start using `dbplyr` syntax to explore this database.
+Let's start by seeing the table names we have in this database:
+
+```{r}
+# List table names in the database
+src_dbi(compara_con)
+```
+
+Compare these with what is found on the [respective information page](https://www.ensembl.org/info/docs/api/compara/compara_schema.html).
+
+Let's say we want to know what the homology is between Humans and some other 
+animals. One of the tables in the database is called "homology", let's look at it:
+
+```{r}
+compara_homology <- tbl(compara_con, "homology")
+head(compara_homology)
+```
+
+Well, we can see there's some useful information there, like `dn` and `ds` metrics 
+(non-synonymous and synonymous substitutions), but we don't know to which species 
+comparison each of these correspond to. 
+
+There is, however, a column called `method_link_species_set_id`, which allows us 
+to match these entries to the entries in yet another table of our database:
+
+```{r}
+compara_linksp <- tbl(compara_con, "method_link_species_set")
+head(compara_linksp)
+```
+
+And there we see that we have this same column, along with a column called "name",
+which contains the shortened name of the species compared. 
+
+Let's say we're interested in ortholog genes between humans and either chimps or 
+mice, and filter our table accordingly:
+
+```{r}
+sapiens_ortho <- compara_linksp %>% 
+  filter(name == "H.sap-P.tro orthologues" | name == "H.sap-M.mus orthologues")
+
+sapiens_ortho
+```
+
+
+# Join tables and collect results
+
+So, now we can use this new table and _join_ it with the `homology` table, using the 
+`method_link_species_set_id` variable. Because this takes a while to run and it 
+is the final result we are interested in, we also collect the results (i.e. 
+import them into R as a `tibble`):
+
+```{r}
+compara_result <- sapiens_ortho %>% 
+  left_join(compara_homology, by = "method_link_species_set_id") %>% 
+  collect()
+
+head(compara_result)
+```
+
+So now, we can for example count how many orthologues there are for each species 
+comparison:
+
+```{r}
+compara_result %>% 
+  count(name, description)
+```
+
+Or make a graph showing the _dS/dN_ ratio distributions:
+
+```{r}
+compara_result %>% 
+  ggplot(aes(name, ds/dn, fill = description)) + 
+  geom_boxplot() + scale_y_log10()
+```
+
