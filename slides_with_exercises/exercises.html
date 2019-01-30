@@ -294,17 +294,23 @@ tricky &lt;- c(1, 2, 3, &quot;4&quot;)</code></pre>
 <ul>
 <li>create a new vector with missing values removed</li>
 </ul>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">heights_no_na &lt;-<span class="st"> </span>heights[<span class="op">!</span><span class="kw">is.na</span>(heights)]</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># !is.na() is used to ask the question &quot;Is NOT missing?&quot;</span>
+heights_no_na &lt;-<span class="st"> </span>heights[<span class="op">!</span><span class="kw">is.na</span>(heights)]</code></pre></div>
 <ul>
 <li>calculate the median of heights</li>
 </ul>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">median</span>(heights, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>)
-<span class="co"># or</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># The median function has an option called &quot;na.rm&quot;</span>
+## note that not all functions have this option! Always check the help page of the functions
+<span class="kw">median</span>(heights, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>)
+
+<span class="co"># Alternatively, we could use the version we created without missing values</span>
 <span class="kw">median</span>(heights_no_na)</code></pre></div>
 <ul>
 <li>calculate how many values are above 67</li>
 </ul>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sum</span>(heights_no_na <span class="op">&gt;</span><span class="st"> </span><span class="dv">67</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Because logical values are stored as TRUE = 1 and FALSE = 0, if we sum a </span>
+## logical vector it's equivalent to counting cases where this was true 
+<span class="kw">sum</span>(heights_no_na <span class="op">&gt;</span><span class="st"> </span><span class="dv">67</span>)</code></pre></div>
 <hr />
 </div>
 <div id="basic-data.frame-manipulation" class="section level2">
@@ -324,7 +330,8 @@ tricky &lt;- c(1, 2, 3, &quot;4&quot;)</code></pre>
 <li>extra: what proportion of values are missing?</li>
 </ul></li>
 </ol>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">sum</span>(<span class="kw">is.na</span>(surveys<span class="op">$</span>weight))
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># We can sum the output of the is.na function, which is a logical vector</span>
+<span class="kw">sum</span>(<span class="kw">is.na</span>(surveys<span class="op">$</span>weight))
 
 <span class="co"># Extra: divide by total number of observations</span>
 <span class="kw">sum</span>(<span class="kw">is.na</span>(surveys<span class="op">$</span>weight))<span class="op">/</span><span class="kw">nrow</span>(surveys)</code></pre></div>
@@ -366,7 +373,7 @@ tricky &lt;- c(1, 2, 3, &quot;4&quot;)</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">surveys <span class="op">%&gt;%</span>
 <span class="st">    </span><span class="kw">count</span>(plot_type) </code></pre></div>
 <ul>
-<li>Make a summary table with the mean, minimum and maximum hindfoot length of each species. Include the total number of individuals observed as well as the number of those individuals that had data for this variable.</li>
+<li>Make a summary table with the mean, minimum and maximum hindfoot length of each species. Include the number of individuals observed per species as well as the number of those individuals that had non-missing hindfoot length (hint: remember you can use <code>sum(!is.na(x))</code> to count how many non-missing values there are in a vector).</li>
 </ul>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">surveys <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(species_id) <span class="op">%&gt;%</span>

@@ -64,20 +64,26 @@ heights <- c(63, 69, 60, 65, NA, 68, 61, 70, 61, 59, 64, 69, 63, 63, NA, 72, 65,
 * create a new vector with missing values removed
 
 ```{r, results=FALSE}
+# !is.na() is used to ask the question "Is NOT missing?"
 heights_no_na <- heights[!is.na(heights)]
 ```
 
 * calculate the median of heights
 
 ```{r, results=FALSE}
+# The median function has an option called "na.rm"
+## note that not all functions have this option! Always check the help page of the functions
 median(heights, na.rm = TRUE)
-# or
+
+# Alternatively, we could use the version we created without missing values
 median(heights_no_na)
 ```
 
 * calculate how many values are above 67
 
 ```{r, results=FALSE}
+# Because logical values are stored as TRUE = 1 and FALSE = 0, if we sum a 
+## logical vector it's equivalent to counting cases where this was true 
 sum(heights_no_na > 67)
 ```
 
@@ -102,6 +108,7 @@ glimpse(surveys)
     * extra: what proportion of values are missing?
     
 ```{r, results=FALSE}
+# We can sum the output of the is.na function, which is a logical vector
 sum(is.na(surveys$weight))
 
 # Extra: divide by total number of observations
@@ -166,8 +173,9 @@ surveys %>%
 ```
 
 * Make a summary table with the mean, minimum and maximum hindfoot length of each species.
-Include the total number of individuals observed as well as the number of those 
-individuals that had data for this variable.
+Include the number of individuals observed per species as well as the number of those 
+individuals that had non-missing hindfoot length (hint: remember you can use `sum(!is.na(x))` 
+to count how many non-missing values there are in a vector).
 
 ```{r, results=FALSE}
 surveys %>%
@@ -179,7 +187,6 @@ surveys %>%
     n = n(),
     n_hindfoot = sum(!is.na(hindfoot_length))
   )
-
 ```
 
 * What was the heaviest animal measured in each year? Return the columns `year`, 
