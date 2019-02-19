@@ -64,7 +64,7 @@ x_num %in% c(20, 30, 1)   # is x_num contained the vector on the right
 Combine conditions with & (AND) and | (OR)
 
 ```{r}
-x
+x_num
 x_num >= 10 & x_num <= 30   # is x_num greater than or equal to 10 AND smaller than or equal to 30
 x_num < 10 | x_num > 30   # is x_num smaller than 10 OR greater than 30
 ```
