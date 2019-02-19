@@ -132,12 +132,40 @@ Using pipes, subset the surveys data to include animals collected before 1995 an
 retain only the columns year, sex, and weight. 
 
 ```{r}
+# Take the surveys table, then filter for year < 1995, then select relevant columns
 surveys_pre1995 <- surveys %>% 
   filter(year < 1995) %>% 
   select(year, sex, weight)
 ```
 
 The answer should have `r nrow(surveys_pre1995)` rows of data.
+
+**optional:**
+
+* How many animals of taxa "Reptile" were collected in the 1980's?
+
+```{r, results=FALSE}
+surveys %>% 
+  filter(year >= 1980 & year < 1990 & taxa == "Reptile")
+```
+
+* Why does this code throw an error? Can you modify it to give the desired output?
+
+```
+# Get genus and plot_id of animals collected in 1995
+surveys %>% 
+  select(genus, plot_id) %>% 
+  filter(year == 1995)
+```
+
+* Subset the table to retain animals collected in the earliest year of the dataset.
+
+```{r, eval=FALSE}
+# Filter to retain cases where the values of year are equal to the minimum of that same year column
+surveys %>% 
+  filter(year == min(year))
+```
+
 
 ----
 
@@ -160,6 +188,18 @@ surveys_hindfoot_half <- surveys %>%
 
 The answer should have `r nrow(surveys_hindfoot_half)` rows and `r ncol(surveys_hindfoot_half)` columns.
 
+**optional:**
+
+* Create a new column in the table that contain the ratio between the weight 
+and hindfoot length. We're then only interested in cases where the base 2 logarithm
+of this ratio (hint: see `log2()` function) is either greater than 2 _or_ smaller 
+than -2. The result should have 805 rows.
+
+```{r, eval=FALSE}
+surveys %>% 
+  mutate(weight_hind_ratio = weight/hindfoot_length) %>% 
+  filter(log2(weight_hind_ratio) > 2 | log2(weight_hind_ratio) < -2)
+```
 
 ----
 
@@ -168,6 +208,7 @@ The answer should have `r nrow(surveys_hindfoot_half)` rows and `r ncol(surveys_
 * How many animals were caught in each `plot_type` surveyed?
 
 ```{r, results=FALSE}
+# Use the count function to count how many in each plot_type
 surveys %>%
     count(plot_type) 
 ```
@@ -178,6 +219,10 @@ individuals that had non-missing hindfoot length (hint: remember you can use `su
 to count how many non-missing values there are in a vector).
 
 ```{r, results=FALSE}
+# for each species
+# calculate mean, min and max, 
+# number of observations per species 
+# and number of non-missing hindfoot_length values
 surveys %>%
   group_by(species_id) %>%
   summarize(
@@ -194,11 +239,16 @@ surveys %>%
 
 ```{r, results=FALSE}
 surveys %>%
-    filter(!is.na(weight)) %>%
-    group_by(year) %>%
-    filter(weight == max(weight)) %>%
-    select(year, genus, species, weight) %>%
-    arrange(year)
+  # remove missing values
+  filter(!is.na(weight)) %>%
+  # for each year
+  group_by(year) %>%
+  # retain those where the weight value is equal to the maximum weight value
+  filter(weight == max(weight)) %>%
+  # select only few columns
+  select(year, genus, species, weight) %>%
+  # then sort the table by year
+  arrange(year)
 ```
 
 
@@ -211,21 +261,34 @@ surveys %>%
     * contains only species that were measured in at least 50 individuals
 
 ```{r}
+# First filter away the missing values
 surveys_complete <- surveys %>% 
   filter(!is.na(weight) & !is.na(sex) & !is.na(hindfoot_length))
 
-common_species <- surveys_complete %>% 
-  count(species_id) %>% 
-  filter(n >= 50)
-
+# Add a column with the count of each species 
 surveys_complete <- surveys_complete %>% 
-  filter(species_id %in% common_species$species_id)
+  group_by(species_id) %>% 
+  mutate(n_obs = n())
+
+# Now filter the table so that number of observations is >= 50
+surveys_complete <- surveys_complete %>% 
+  filter(n_obs >= 50)
+
+# Or all of the above could have been done in one pipeline
+surveys_complete <- surveys %>% 
+  filter(!is.na(weight) & !is.na(sex) & !is.na(hindfoot_length)) %>% 
+  group_by(species_id) %>% 
+  mutate(n_obs = n()) %>% 
+  filter(n_obs >= 50)
+
+# note the course notes shows a different way of doing this:
+# https://datacarpentry.org/R-ecology-lesson/03-dplyr.html#exporting_data
 ```
 
 The final data frame should have `r nrow(surveys_complete)` rows.
 
 * Optional: save the new table as a CSV file in the `data_output` folder of your 
-project directory.
+project directory (use `write_csv()` function).
 
 ```{r, eval=FALSE}
 write_csv(surveys_complete, "data_output/surveys_complete.csv")
