@@ -1,0 +1,381 @@
+---
+title: "Introduction to ggplot2"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 3
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Lesson objectives
+
+This lesson complements the [Data Carpentry lessons]() 
+by providing an earlier introduction to `ggplot2`.
+The lesson is to be taught after [Starting With Data]() 
+but before [Data Manipulation]() lesson. 
+
+* Identify the basic parts needed to build a graph with `ggplot2`.
+    * defining data, aesthetics and geometries for a basic graph.
+* Distinguish when to use or not to use `aes()` to change graph's aesthetics (e.g. colours, shapes).
+* Apply overlaying of multiple geometries on the same graph and define aesthetics separetely for each.
+* Adjust and costumise scales and labels in the graph.
+
+
+```{r, echo=FALSE, message=FALSE, fig.width=7, fig.height=9}
+library(patchwork); library(tidyverse)
+surveys <- read_csv("https://ndownloader.figshare.com/files/2292169")
+
+surveys_nomiss <- drop_na(surveys)
+
+p1 <- surveys_nomiss %>% 
+  ggplot(aes(x = weight, colour = genus)) +
+  geom_freqpoly(binwidth = 1) +
+  labs(x = "Hindfoot length", title = "Frequency polygon") +
+  theme(legend.position = "none")
+
+p2 <- surveys_nomiss %>% 
+  ggplot(aes(x = genus, y = weight)) +
+  geom_violin(scale = "width", fill = "grey") +
+  geom_boxplot(width = 0.2) +
+  labs(title = "Boxplot & Violin plot") +
+  theme(axis.text.x = element_text(angle = 20, hjust = 1, size = 8))
+
+p3 <- surveys_nomiss %>% 
+  ggplot(aes(x = weight, y = hindfoot_length, colour = genus)) +
+  geom_point() +
+  labs(title = "Scatterplot") +
+  theme(legend.position = "bottom")
+
+{p1 + p2 + plot_layout(ncol = 2)} / p3 + plot_layout(heights = c(1, 2))
+```
+
+
+
+# Setup
+
+Make sure you loaded the `surveys` data:
+
+```{r, eval=FALSE}
+library(tidyverse)
+surveys <- read_csv("data/portal_data_joined.csv")
+```
+
+For this lesson we're going to remove missing values from our table.
+This is not always desirable (you might be throwing away good data!), but it will 
+help us make this lesson clearer.
+
+We will use the function `drop_na()`, which removes rows with any missing data:
+
+```{r}
+# remove rows with missing data in any of the columns
+surveys_nomiss <- drop_na(surveys)
+```
+
+
+
+# Building a `ggplot2` graph
+
+To build a `ggplot2` graph you need 3 basic pieces of information:
+
+* A **data.frame** with data to be plotted
+* The variables (columns of `data.frame`) that will be _mapped_ to different 
+**aesthetics** of the graph (e.g. axis, colours, shapes, etc.)
+* the **geometry** that will be draw on the graph (e.g. points, lines, 
+boxplots, violinplots, etc.)
+
+This translates into the following basic syntax:
+
+``` r
+ggplot(data = <data.frame>, 
+       mapping = aes(x = <column of data.frame>, y = <column of data.frame>)) +
+   geom_*()
+```
+
+
+For our first visualisation, let's make a scatterplot showing the relationship 
+between `weight` and `hindfoot_length`. 
+Let's do it step-by-step to see how `ggplot2` works. 
+
+Start by giving data to `ggplot`:
+
+```{r}
+ggplot(data = surveys_nomiss)
+```
+
+OK, that "worked" (as in, we didn't get an error). 
+But because we didn't give `ggplot()` any variables to be _mapped_ to **aesthetic** 
+components of the graph, we just got a grey square. 
+
+For _mappping_ columns to _aesthetics_, we use the `aes()` function to give this 
+information for the axis:
+
+```{r}
+ggplot(data = surveys_nomiss, 
+       mapping = aes(x = weight, y = hindfoot_length))
+```
+
+That's better, now we have some axis. Notice how `ggplot()` defines the axis based on the range of data given.
+But it's still not a very interesting graph, because we didn't tell what it is we want to draw on the graph.
+
+This is done by adding (literally `+`) _geometries_ to our graph:
+
+```{r}
+ggplot(data = surveys_nomiss, 
+       mapping = aes(x = weight, y = hindfoot_length)) +
+  geom_point()
+```
+
+----
+
+**Exercise**
+
+> * Modify the graph above by plotting a density hexagon plot (`geom_hex()`)
+> * From this graph, we can see that there are different groups of observations.
+> Either alone or with person next to you discuss why this might be and how you would 
+> like to change the graph to investigate it. 
+
+----
+
+
+### Changing how geometries look like
+
+We can change how geometries look like in several ways, for example their transparency, colour, shape, etc. 
+
+To know which _aesthetic_ components can be changed in a particular geometry, 
+look at its help (e.g. `?geom_point`) and look under the "Aesthetics" section of the help page. 
+
+For example, because the points in the above graph are quite densely packed, 
+we can change the transparency of the points in our scatterplot using `alpha`
+(`alpha` varies between 0-1 with zero being transparent and 1 being opaque):
+
+```{r}
+ggplot(data = surveys_nomiss, 
+       mapping = aes(x = weight, y = hindfoot_length)) +
+  geom_point(alpha = 0.1)
+```
+
+With this transparency we can see which areas of the graph are more densely occupied with points. 
+
+----
+
+**Exercise**
+
+> Try changing the _size_ and _shape_ of the lines 
+> (hint: web search "point shape in R" to see how to make a triangle)
+
+----
+
+
+### Changing aesthetics based on data
+
+In the above exercise we changed the colour of the points by defining it ourselves. 
+However, it would be better if we coloured the points based on a variable of interest. 
+
+For example, it's likely that the clustering of points in our scatterplot is due to differences between genera. 
+
+We do this by passing this information to the `colour` _aesthetic_ (inside the `aes()` function):
+
+```{r}
+ggplot(data = surveys_nomiss, 
+       mapping = aes(x = weight, y = hindfoot_length, colour = genus)) +
+  geom_point()
+```
+
+This illustrates an important distinction between _aesthetics_ defined inside or outside of `aes()`:
+
+* if you want the _aesthetic_ to change **based on the data** it goes **inside `aes()`**
+* if you want to **manually specify** how the geometry should look like, it goes **outside `aes()`**
+
+----
+
+**Exercise**
+
+> Make a boxplot showing the distribution of _weight_ (y-axis) for each `genus` (x-axis).
+> (hint: use the `geom_boxplot()` function)
+> Bonus: Colour the inside of the boxplots by sex 
+
+----
+
+### Multiple geometries
+
+Often, we may want to overlay several geometries on top of each other. 
+For example, we could use a violin plot as an alternative to a boxplot: 
+
+```{r}
+ggplot(surveys_nomiss, aes(x = genus, y = weight)) +
+  geom_violin(scale = "width")
+```
+
+But even better, we may want to overlay a boxplot on top of each violinplot, 
+so that we get both representations of the data. 
+We do this by "adding" (with `+`) another geometry to the graph:
+
+```{r}
+ggplot(surveys_nomiss, aes(x = genus, y = weight)) +
+  geom_violin(scale = "width") +
+  geom_boxplot(width = 0.2)
+```
+
+The order in which you add the geometries defines the order they are "drawn" on the graph. 
+For example, try swapping their order and see what happens 
+(bonus: try adding transparency to the violin plot)
+
+
+### Controlling aesthetics in individual geometries
+
+Let's say that, in the graph above, we wanted to colour the violins by genus, but keep the boxplots without colour. 
+
+Because we want to colour our geometries _based on data_, this goes inside the `aes()` part of the graph:
+
+```{r}
+ggplot(surveys_nomiss, aes(x = genus, y = weight, fill = genus)) +
+  geom_violin(scale = "width") +
+  geom_boxplot(width = 0.2)
+```
+
+OK, this is not what we wanted. Both _geometries_ (boxplots and violins) got coloured. 
+
+It turns out that we can control aesthetics individually in each geometry, using the `aes()` function.
+Like this:
+
+```{r}
+ggplot(surveys_nomiss, aes(x = genus, y = weight)) +
+  geom_violin(scale = "width", aes(fill = genus)) +
+  geom_boxplot(width = 0.2)
+```
+
+----
+
+**Exercise**
+
+> Modify the graph above by colouring the inside of the boxplots by genus and the inside of the violins in grey colour. 
+
+```{r, echo=FALSE}
+ggplot(surveys_nomiss, aes(x = genus, y = weight)) +
+  geom_violin(scale = "width", fill = "grey") +
+  geom_boxplot(width = 0.2, aes(fill = genus))
+```
+
+----
+
+
+### Modifying scales
+
+Often you want to change how the scales of your plot are defined. 
+In `ggplot2` scales can refer to the `x` and `y` aesthetics, but also to other 
+aesthetics such as `colour`, `shape`, `fill`, etc. 
+
+We modify scales using the _scale_ family of functions. 
+These functions always follow the following naming convention: `scale_<aesthetic>_<type>`, where:
+
+* `<aesthetic>` refers to the aesthetic for that scale function (e.g. `x`, `y`, `colour`, `fill`, `shape`, etc.)
+* `<type>` refers to the type of aesthetic (e.g. `discrete`, `continuous`, `manual`)
+
+Let's see some examples.
+
+Taking the graph from the previous exercise we modify the y-axis scale to emphasise 
+the lower weights of our animals:
+
+```{r}
+ggplot(surveys_nomiss, aes(x = genus, y = weight)) +
+  geom_violin(scale = "width", fill = "grey") +
+  geom_boxplot(width = 0.2, aes(fill = genus)) +
+  scale_y_continuous(limits = c(0, 100))
+```
+
+Another example: change the `fill` scale to define custom colours "manually". 
+This is a "discrete" type of scale (our values are categorical, not continuous):
+
+```{r}
+ggplot(surveys_nomiss, aes(x = genus, y = weight)) +
+  geom_violin(scale = "width", fill = "grey") +
+  geom_boxplot(width = 0.2, aes(fill = genus)) +
+  scale_fill_manual(values = c("pink", "orange", "green4", "blue4", "purple", "tomato", "brown", "grey", "black"))
+```
+
+For colour/fill scales there's a very convenient variant of the function ("brewer") that has some pre-defined palettes:
+
+```{r}
+ggplot(surveys_nomiss, aes(x = genus, y = weight)) +
+  geom_violin(scale = "width", fill = "grey") +
+  geom_boxplot(width = 0.2, aes(fill = genus)) +
+  scale_fill_brewer(palette = "Set1")
+```
+
+Look at the function's help documentation for more information on palettes. 
+Note that some palettes only have a limited number of colours and `ggplot` will 
+give a warning. 
+
+
+#### In summary
+
+* To build a `ggplot2` graph you need to provide _data_, _aesthetics_ and _geometries_.
+* If you want to change an _aesthetic_ of our graph **based on data**, include it **inside `aes()`**.
+* If you want to **manually** change an _aesthetic_ regardless of data then it goes **outside `aes()`**.
+* You can overlay multiple geometries in the same graph, and control their aesthetics individually.
+* You can adjust scales of your graph using `scale_*` family of functions.
+
+
+# List of graphs for exploratory data analysis
+
+Here we just quickly showcase different types of graphs that are suitable for 
+different types of questions you may want to ask from your data. 
+
+### Variation of a continuous variable
+
+[density plot](https://www.data-to-viz.com/graph/density.html) or
+[histograms](https://www.data-to-viz.com/graph/histogram.html) 
+
+
+```{r}
+ggplot(data = surveys_nomiss, 
+       mapping = aes(x = weight)) +
+  geom_density(fill = "grey")
+```
+
+
+### Variation of a continuous variable across categories
+
+[boxplot](https://www.data-to-viz.com/caveat/boxplot.html) or 
+[violin](https://www.data-to-viz.com/graph/violin.html)
+
+```{r}
+ggplot(surveys_nomiss, 
+       aes(x = genus, y = weight)) +
+  geom_boxplot()
+```
+
+[Ridge plots](https://www.data-to-viz.com/graph/ridgeline.html) can be particularly useful if 
+your y-axis is ordered (which is not the case here, but still useful)
+
+```{r}
+library(ggridges)
+ggplot(surveys_nomiss, 
+       aes(x = weight, y = genus)) +
+  geom_density_ridges()
+```
+
+
+### Relationship between two continuous variables 
+
+[scatterplot](https://www.data-to-viz.com/graph/scatter.html)
+
+```{r}
+ggplot(data = surveys_nomiss, 
+       mapping = aes(x = weight, y = hindfoot_length, colour = genus)) +
+  geom_point()
+```
+
+[2D density plot](https://www.data-to-viz.com/graph/density2d.html)
+
+```{r}
+ggplot(data = surveys_nomiss, 
+       mapping = aes(x = weight, y = hindfoot_length)) +
+  geom_hex()
+```
+
