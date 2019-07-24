@@ -14,10 +14,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Lesson objectives
 
-This lesson complements the [Data Carpentry lessons]() 
+This lesson complements the [Data Carpentry lessons](https://datacarpentry.org/R-ecology-lesson/index.html) 
 by providing an earlier introduction to `ggplot2`.
-The lesson is to be taught after [Starting With Data]() 
-but before [Data Manipulation]() lesson. 
+The lesson is to be taught after [Starting With Data](https://datacarpentry.org/R-ecology-lesson/02-starting-with-data.html) 
+but before the [Data Manipulation](https://datacarpentry.org/R-ecology-lesson/03-dplyr.html) lesson. 
 
 * Identify the basic parts needed to build a graph with `ggplot2`.
     * defining data, aesthetics and geometries for a basic graph.
