@@ -169,8 +169,8 @@ With this transparency we can see which areas of the graph are more densely occu
 
 **Exercise**
 
-> Try changing the _size_ and _shape_ of the points 
-> (hint: web search "point shape in R" to see how to make a triangle)
+> Try changing the _size_, _shape_ and _colour_ of the points 
+> (hint: web search "ggplot2 point shapes" to see how to make a triangle)
 
 ----
 
@@ -323,7 +323,7 @@ ggplot(surveys_nomiss, aes(x = genus, y = weight)) +
 ```
 
 
-#### Change a discrete colour/fill scale
+#### Change categorical colour/fill scales
 
 Taking the previous plot, let's change the `fill` scale to define custom colours 
 "manually". 
@@ -338,7 +338,7 @@ ggplot(surveys_nomiss, aes(x = genus, y = weight)) +
                                "Baiomys" = "steelblue"))
 ```
 
-For colour/fill scales there's a very convenient variant of the function ("brewer") that has some pre-defined palettes:
+For colour/fill scales there's a very convenient variant of the `scale` function ("brewer") that has some pre-defined palettes:
 
 ```{r}
 ggplot(surveys_nomiss, aes(x = genus, y = weight)) +
@@ -352,7 +352,7 @@ Note that some palettes only have a limited number of colours and `ggplot` will
 give a warning if it has fewer colours available than categories in the data. 
 
 
-#### Change a continuous fill/colour scale
+#### Change continuous fill/colour scales
 
 Let's get back to our scatterplot and colour the points by year of collection:
 
