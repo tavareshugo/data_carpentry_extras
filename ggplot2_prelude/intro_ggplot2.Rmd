@@ -281,6 +281,50 @@ ggplot(surveys_nomiss, aes(x = genus, y = weight)) +
 
 ----
 
+### Facets
+
+You can split your plot into multiple panels by using _facetting_. 
+There are two types of _facet_ functions:
+
+- `facet_wrap()` arranges a one-dimensional sequence of panels to fit on one page.
+- `facet_grid()` allows you to form a matrix of rows and columns of panels.
+
+Both geometries allow to to specify faceting variables specified with `vars()`. 
+In general: `facet_wrap(facets = vars(facet_variable))` or `facet_grid(rows = vars(row_variable), cols = vars(col_variable))`.
+
+For example, if we want to visualise the scatterplot above split by `genus`:
+
+```{r}
+ggplot(surveys_nomiss, aes(hindfoot_length, weight)) +
+  geom_point() +
+  facet_wrap(facets = vars(genus))
+```
+
+If instead we want a _matrix_ of facets to display `genus` and `sex`, then we use `facet_grid()`:
+
+```{r}
+ggplot(surveys_nomiss, aes(hindfoot_length, weight)) +
+  geom_point() +
+  facet_grid(rows = vars(sex), cols = vars(genus))
+```
+
+Finally, with `facet_grid()`, you can organise the panels just by rows or just by columns.
+Try running this code yourself:
+
+```{r, eval=FALSE}
+# One column, facet by rows
+ggplot(surveys_nomiss, 
+       mapping = aes(x = hindfoot_length, y = weight)) +
+  geom_point() +
+  facet_grid(rows = vars(genus))
+
+# One row, facet by column
+ggplot(surveys_nomiss, 
+       mapping = aes(x = hindfoot_length, y = weight)) +
+  geom_point() +
+  facet_grid(cols = vars(genus))
+```
+
 
 ### Modifying scales
 
@@ -380,6 +424,78 @@ ggplot(surveys_nomiss, aes(x = weight, y = hindfoot_length)) +
   geom_point(aes(colour = year)) +
   scale_colour_viridis_c()
 ```
+
+
+### Customising your graphs
+
+Every single element of the graph can be modified, althought the syntax can get quite complicated. 
+We will highlight some common cases in this section.
+
+We also note that you can assign a plot to a variable, which sometimes makes it easier to modify, because there's less code to type. We will do this for our example, saving our scatterplot in a variable simply called `p`:
+
+```{r}
+p <- ggplot(surveys_nomiss, aes(x = genus, y = weight, fill = sex)) +
+  geom_boxplot()
+```
+
+To view the plot, you can type it's name on the console:
+
+```{r}
+p
+```
+
+
+#### Themes
+
+You can change the overall look of a graph using the `theme_*` family of funtions. 
+
+These are added onto to the graph, for example, let's use `theme_classic()` for a cleaner-looking graph:
+
+```{r}
+p + 
+  theme_classic()
+```
+
+#### Labels
+
+We can change the labels of every aesthetic using the `labs()` function, added on to the graph. 
+
+For example:
+
+```{r}
+p + 
+  labs(x = "Genus of animal", 
+       y = "Weight (g)", 
+       fill = "Sex of animal",
+       tag = "A", 
+       title = "Boxplot", 
+       subtitle = "split by genus and sex",
+       caption = "done with ggplot2 in R")
+```
+
+**Note:** the `tag` label is particularly useful for numbering panels in composite figures.
+
+
+#### Finer customisation with `theme()`
+
+To tune individual elements of the graph, you can use the generic `theme()` function. 
+This allows you to change the look of _every single aspect_ of the graph, so we cannot cover it all here. 
+
+But here's some cases that might be useful:
+
+```{r}
+# Change the font size
+p + theme(text = element_text(size = 16))
+
+# Remove legend
+p + theme(legend.position = "none") # can also use "top", "bottom", "left"
+
+# Change orientation of the x-axis text
+p + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+In most cases, the way to figure out how to do 
+
 
 
 
