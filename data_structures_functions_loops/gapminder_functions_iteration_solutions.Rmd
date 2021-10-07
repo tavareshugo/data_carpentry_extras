@@ -1,0 +1,250 @@
+---
+title: "Functions and loops - exercise solution"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 3
+    highlight: pygments
+    css: ../assets/styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = here::here("data_structures_functions_loops"))
+
+# Function to read and tidy gapminder data
+read_gapminder <- function(file){
+  
+  # Read the data in the file - starts at line 3
+  country_data <- read_csv(file, skip = 2, show_col_types = FALSE)
+  
+  # Extract the world_region from the file - first line of the file
+  # and remove the word "Region:" from it
+  country_region <- read_lines(file, n_max = 1) %>% 
+    str_remove("Region:")
+
+  # Get the country name - from the file name
+  country_name <- file %>% basename() %>% str_remove(".csv")
+  
+  # Add diet and chick ID to our table
+  country_data <- country_data %>% 
+    mutate(country = country_name, world_region = country_region)
+  
+  # Return the tidy chick_data
+  return(country_data)
+}
+```
+
+We were given 193 text files, each containing data for a country. 
+The format of each text file is the same:
+
+- The name of the file gives the country name
+- The first line gives the world region they occur in
+- The rest of the data starts at line 3 of the file, and is in a comma-separated format
+
+We were asked to parse these files and combine them into a tidy tabular format. 
+
+There are many ways to solve this exercise. Here, we show a solution using several functions from the `tidyverse` meta-package.
+
+```{r, message = FALSE}
+# load the package
+library(tidyverse)
+```
+
+
+## Prelude
+
+For any problem where we need to repeat the same task several times, it helps to break down the problem into parts. 
+We can write down what the different steps are using words and not worrying about the code.
+
+Here's an example for our problem of parsing and combining the data files:
+
+- For each file make a table with 4 columns: `country`, `world_region`, `year`, `income_per_person`
+    - store the file name, which contains the country name
+    - extract the first line, which contains the world region
+    - extract lines 3 onwards, which contain the year and income
+- Repeat the steps above for all files
+- Combine all tables together into a single table
+
+Now that we've broken our problem into parts, let's tackle them in turn.
+
+## Understanding our data
+
+If we open one of our files in a text editor, this is how they look like (here showing the first few lines only):
+
+```{r, echo=FALSE}
+cat(head(read_lines("data/multiple_files/Afghanistan.csv")), sep = "\n")
+```
+
+There are 3 pieces of information that we should bring together into a single 
+tidy _data frame_:
+
+* name of the country - this is contained in the file name
+* information about the world region - in the first line of the file 
+* the rest of the data for the country
+
+That is, we should aim for something like this:
+
+```{r, echo = FALSE}
+read_gapminder("data/multiple_files/Afghanistan.csv") %>% 
+  select(country, world_region, everything()) %>% 
+  head() %>% 
+  knitr::kable()
+```
+
+
+## Building the steps to read and tidy our data
+
+We start by focusing on a single file, and then generalise across all files.
+
+If you look at the help of `?read_csv`, you will notice that these `read_*` functions have an option to skip some of the lines of the file. 
+This is very convenient, as it allows us to read data starting from line 3, which contain the bulk of the information for our country:
+
+```{r, message=FALSE}
+# read the table starting from line 3
+read_csv("data/multiple_files/Afghanistan.csv", skip = 2)
+```
+
+So this solves one of our steps! 
+(note that base R functions such as `read.table()` also have an option to skip lines of a file before reading it in)
+
+Let's now turn into reading the first line of the file, which contains the diet identifier. 
+Again, if you look at the help of `read_*` functions, you will notice there is an option `n_max`, which determines how many lines of the file we want to read in (the default is to read all lines). 
+We can therefore use this option to read the first line of the file only.
+
+We will use a function called `read_lines()`, which simply reads the lines of a file and stores them into a vector. 
+This function is not often used, but can be useful when parsing data.
+
+```{r}
+# Read the first line of the file
+read_lines("data/multiple_files/Afghanistan.csv", n_max = 1)
+```
+
+Because we are reading the first line of the file only, the output is a vector of length 1. 
+For our final dataset, we don't really need to keep the string "Region:" because we will place these values in a column. 
+Therefore, it is useful to remove that string from our value. 
+We will use the function `str_remove()`, which we can pipe from the previous line of code:
+
+```{r}
+# Read first line and remove "Diet:" string
+read_lines("data/multiple_files/Afghanistan.csv", n_max = 1) %>% 
+  str_remove("Region:")
+```
+
+And that's another problem solved!
+
+Finally, we want to extract the country name from the file name. 
+So far we've been looking at a single file, but eventually we will create a list of file names too  apply these steps to. 
+For now, let's manually type the file name of the first file we've been experimenting on:
+
+```{r}
+"data/multiple_files/Afghanistan.csv"
+```
+
+From this file name, we want to extract the file name only (without the directory), 
+which we can do using the `basename()` function:
+
+```{r}
+"data/multiple_files/Afghanistan.csv" %>% basename()
+```
+
+Then, we want to remove the string ".txt" from it, which we've already seen can be done with `str_remove()`:
+
+```{r}
+"data/multiple_files/Afghanistan.csv" %>% 
+  basename() %>% 
+  str_remove(".csv")
+```
+
+And that's it!
+
+
+## Putting it all together into a function
+
+We can wrap all these steps into our own custom function. 
+This will be convenient when we want to apply this function to the entire list of files.
+
+```{r}
+read_gapminder <- function(file){
+  
+  # Read the data in the file - starts at line 3
+  country_data <- read_csv(file, skip = 2, show_col_types = FALSE)
+  
+  # Extract the world_region from the file - first line of the file
+  # and remove the word "Region:" from it
+  country_region <- read_lines(file, n_max = 1) %>% 
+    str_remove("Region:")
+
+  # Get the country name - from the file name
+  country_name <- file %>% basename() %>% str_remove(".csv")
+  
+  # Add diet and chick ID to our table
+  country_data <- country_data %>% 
+    mutate(country = country_name, world_region = country_region)
+  
+  # Return the tidy chick_data
+  return(country_data)
+}
+```
+
+Let's test the function:
+
+```{r}
+read_gapminder("data/multiple_files/Afghanistan.csv")
+```
+
+
+
+## Apply function to list of files
+
+First let's create a list of data files in our directory:
+
+```{r}
+file_list <- list.files("data/multiple_files/", pattern = ".csv",
+                        full.names = TRUE)
+head(file_list)
+```
+
+We can now for example use a for loop to read all the files into a list:
+
+```{r}
+# initialise an empty list with the correct length
+gapminder <- vector("list", length = length(file_list))
+
+# loop through the files and add to the list
+for(i in seq_along(file_list)){
+  gapminder[[i]] <- read_gapminder(file_list[i])
+}
+```
+
+The result is now a _list_ containing `r length(gapminder)` data frames, one of each country. 
+
+Finally, we can "bind" those tables using the `bind_rows()` function:
+
+```{r}
+gapminder <- bind_rows(gapminder)
+```
+
+
+:::note 
+
+An alternative to using _for loops_ in R is to use functions that are designed to iterate through vectors/lists.
+Base R has the function `lapply()` and tidyverse as the similar function called `map()`. 
+
+These take as an input a vector and a function, and will apply the function to each element of the vector. 
+
+Here is the same task as we did above with the _for loop_ using the `lapply()` function instead: 
+
+```{r, eval=FALSE}
+gapminder <- lapply(file_list, read_gapminder)
+```
+
+You can think of `map()`/`lapply()` as encapsulated _for loops_. 
+The advantage of using these functions is that the code is more compact and there are less intermediate variables cluttering our environment (in this case, the variable `i` was created by the for loop, but no such variable is created by the `map()` function). 
+
+Learn more about `map()` and its variants from the 
+[iteration chapter in R for Data Science](http://r4ds.had.co.nz/iteration.html)
+
+:::
+

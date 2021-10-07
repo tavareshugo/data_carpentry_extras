@@ -5,3 +5,4 @@ This repository contains extra materials to help in Data Carpentry courses.
 * [Syntax equivalent between "base R" and "dplyr"](base-r_tidyverse_equivalents/base-r_tidyverse_equivalents.html)
 * [Example connecting to ENSEMBL database with `dbplyr`](dbplyr_ensembl/dbplyr_ensembl.html)
 * [`ggplot2` prelude lesson](ggplot2_prelude/intro_ggplot2.html)
+* [Data structures, functions and loops](data_structures_functions_loops/data_structures_functions_loops.html)

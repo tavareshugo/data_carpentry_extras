@@ -1,0 +1,374 @@
+---
+title: "Data Structures, Functions and Control Flow in R"
+author: "Hugo Tavares"
+date: "6 Oct 2021"
+output:
+  html_document:
+    toc: yes
+    toc_float: yes
+    toc_depth: 3
+    highlight: pygments
+    css: ../assets/styles.css
+---
+
+# Data Structures
+
+The most fundamental data structures in R are: 
+
+| | Homogeneous | Heterogeneous |
+| :-: | :-: | :-: |
+| 1-d | atomic vector | list |
+| 2-d | matrix | data.frame |
+| n-d | array | |
+
+([source](http://adv-r.had.co.nz/Data-structures.html))
+
+
+## Atomic Vectors
+
+Atomic vectors are often simply referred to as _vectors_. 
+They are one-dimensional and _homogeneous_ (can only contain values of one type).
+
+There are four common types of vector: 
+
+```{r}
+# Integer
+x_int <- c(1L, 10L)
+class(x_int)
+
+# Numeric with double-precision digits
+x_dbl <- c(1, 2.1, 5)
+class(x_dbl)
+
+# Character
+x_chr <- c("cat", "dog", "fish")
+class(x_chr)
+
+# Logical
+x_lgl <- c(TRUE, FALSE, TRUE)
+class(x_lgl)
+```
+
+Because vectors are homogeneous, coercion occurs when there are mixed types:
+
+```{r}
+# Coerced to character
+x_mixed <- c("a", 1, 5)
+class(x_mixed)
+```
+
+
+## Matrix
+
+A matrix is a 2-dimensional object (rows and columns), and like atomic vectors it's an _homogenous_ object (can only contain values of one type).
+
+```{r}
+x_mat <- matrix(1:12, nrow = 3, ncol = 4)
+x_mat
+```
+
+Subset can be with with square-bracket notation (`x[rows, columns]`):
+
+```{r}
+x_mat[1:2, 2:3]
+```
+
+Matrix objects often have column and row names:
+
+```{r}
+rownames(x_mat) <- c("gene1", "gene2", "gene3")
+colnames(x_mat) <- c("sample1", "sample2", "sample3", "sample4")
+x_mat
+```
+
+A common example of the use of matrix objects in bioinformatics is in processed data from RNA sequencing. 
+These data are often stored as a genes-by-samples matrix of counts (quantifying the sequencing reads that aligned to each gene in each sample). 
+
+
+### Matrix Statistics 
+
+There are several functions optimised to calculate common summary statistics across rows or columns of matrix objects. 
+Some are part of base R, others from the `matrixStats` package. 
+
+```{r, eval=FALSE}
+library(matrixStats)
+# row summaries
+rowSums(x_mat)  # sum
+rowMeans(x_mat) # mean
+rowSds(x_mat)   # standard deviation
+rowVars(x_mat)  # variance
+rowIQRs(x_mat)  # inter-quartile range
+rowMads(x_mat)  # mean absolute deviation
+
+# column (sample) summaries
+colSums(x_mat)  # sum
+colMeans(x_mat) # mean
+colSds(x_mat)   # standard deviation
+colVars(x_mat)  # variance
+colIQRs(x_mat)  # inter-quartile range
+colMads(x_mat)  # mean absolute deviation
+```
+
+
+## Arrays
+
+Arrays are an N-dimensional generalisation of a matrix, and therefore are also _homogeneous_ (can only contain values of one type).
+
+```{r}
+x_arr <- array(1:24, dim = c(3, 4, 2))
+x_arr
+```
+
+A common example of the use of arrays is to store image data (e.g. red, blue and green intensity channels).
+
+
+## Lists
+
+Lists are one of the more versatile types of object in R. 
+The elements of a list can be of any type (even other lists), therefore they are _heterogeneous_ objects.
+They are also referred to as a _recursive vector_. 
+
+```{r}
+x_lst <- list(a = 1:3,
+              b = data.frame(x = 0:3, y = 10:13))
+x_lst
+```
+
+Access elements in a list either by name (using `$`) or by position (using `[[`):
+
+```{r}
+x_lst$a
+x_lst[[1]]
+```
+
+Note that `x[1]` would return a _list_ with one element whereas `x[[1]]` "pulls" the actual value from the list and, in this example, returns a vector.
+
+```{r}
+class(x_lst[1])
+class(x_lst[[1]])
+```
+
+Many functions in R return objects that are, in essence, a list. 
+For example, the `lm()` function, used to fit linear models, returns a list object (although the object has class "lm"): 
+
+```{r}
+lm_example <- lm(dist ~ speed, data = cars)
+class(lm_example)
+str(lm_example) # structure of the object
+```
+
+
+
+## Data Frames
+
+The `data.frame` object is the most common object to represent tabular data (usually imported using `read.csv()` and related functions).
+
+It is a 2-dimensional object but, unlike matrices, it is _heterogeneous_ (each column can be of a different type).
+The `data.frame` object is in fact a type of _list_, where the elements (columns) are all of the same length.
+
+Similarly to a list, we can extract elements by name or position:
+
+```{r}
+cars$speed
+cars[[1]]
+```
+
+Packages such as `dplyr` (and the `tidyverse` more generally) can be used to manipulate `data.frame` objects.
+
+
+# Functions 
+
+When repeating a task, it can be useful to write our own custom functions. 
+
+Here is the basic syntax:
+
+```{r, eval=FALSE}
+my_function <- function(arguments){
+  # code for what the function does
+  # return value
+}
+```
+
+For example, let's define a function that makes min-max scaling of a vector:
+
+$x' = \frac{x - min(x)}{max(x) - min(x)}$
+
+```{r}
+scale_minmax <- function(x){
+  x_scaled <- (x - min(x))/(max(x) - min(x))
+  return(x_scaled)
+}
+```
+
+And test this function on a vector of numbers: 
+
+```{r}
+scale_minmax(1:10)
+```
+
+## Including checks in your functions
+
+When writing your own functions, it is a good practice to include as many checks as possible, to avoid possible unintended errors or (even worse) wrong answers. 
+
+Using `if/else` statements can be very useful in these circumstances. 
+For example, here is how we could improve our previous function:
+
+```{r}
+scale_minmax <- function(x){
+  # check if x is numeric
+  if(!is.numeric(x)){
+    stop("x must be numeric.")
+  }
+  # check if there are infinite values
+  if(any(is.infinite(x))){
+    warning("Infinite values present in the vector. This will result in NaN values.")
+  }
+  
+  x_scaled <- (x - min(x))/(max(x) - min(x))
+  return(x_scaled)
+}
+```
+
+We should not get a warning when there are infinite values or an error if the vector is not character:
+
+```{r}
+scale_minmax(c(1, 2, Inf))
+```
+
+:::exercise
+
+Add a new argument to this option, to enable the user to ignore missing values when scaling the data. 
+
+<details><summary>Answer</summary>
+
+Following the convention of other functions such as `mean()`, `min()`, `max()`, etc., we can add an argument called `na.rm` as follows:
+
+```{r}
+scale_minmax <- function(x, na.rm = FALSE){
+  # check if x is numeric
+  if(!is.numeric(x)){
+    stop("x must be numeric.")
+  }
+  # check if there are infinite values
+  if(any(is.infinite(x))){
+    warning("Infinite values present in the vector. This will result in NaN values.")
+  }
+
+  x_scaled <- (x - min(x, na.rm = na.rm))/(max(x, na.rm = na.rm) - min(x, na.rm = na.rm))
+  return(x_scaled)
+}
+```
+
+We can now test our function:
+
+```{r}
+scale_minmax(c(1, 2, NA))
+scale_minmax(c(1, 2, NA), na.rm = TRUE)
+```
+
+
+</details>
+
+:::
+
+
+# For loops 
+
+Repeating operations is a common task in any programming language. 
+The `for()` loop can be a useful tool in these situations. 
+
+Here is a simple example:
+
+```{r}
+for (i in 1:3){
+  print(i)
+}
+```
+
+The basic principle of the `for()` loop is that a variable is created which will store a different value at each iteration of the loop. 
+In this case we are defining a variable called `i`, which will take the values 1, 2 and 3 in successive rounds of the loop. 
+
+Often, we want to store the result of the operations done within the loop in an object, so that we can analyse its results later on. 
+Due to its flexibility, we can use a `list` for this purpose (although an atomic vector may also be suitable in some cases). 
+
+For example, let's sample 10 numbers from a normal distribution and repeat that 5 times:
+
+```{r}
+# number of sampling repeats
+N <- 5
+
+# create an empty list
+result <- vector("list", length = N)
+
+# perform our sampling N times
+for (i in 1:N){
+  # sample from normal distribution and add to results list
+  result[[i]] <- rnorm(10, mean = 0, sd = 1)
+}
+```
+
+The result is a list of length 5:
+
+```{r}
+result
+```
+
+:::note 
+
+When adding results to an object with a for loop, **always create an empty object first**. 
+In the example above, we created an empty list of length 5. 
+This will make your code run much faster. 
+
+:::
+
+:::exercise
+
+**Part I**
+
+Data about world-wide income per person between 1960 and 2010 was downloaded from the Gapminder foundation and stored as a series of files, containing the data for each country individually. 
+
+The data are stored in text files in a directory entitled “data/multiple_files”. 
+There is one text file for each country. 
+The format of the data in each text file is the same:
+
+- The name of the file gives the country name
+- The first line gives the world region they occur in
+- The rest of the data starts at line 3 of the file, and is in a comma-separated format
+
+Create a function called `read_gapminder` that reads in the data from a single file and returns a data.frame object. 
+The function should:
+
+- Accept a single argument (a character string of the file location)
+- Get the main data, stored in line 3 ownwards of the file
+- Extract the country from the filename and store this in a new column of the final data.frame
+- Get the world region from the first line of the file and store this in a new column of the final data.frame
+
+<details><summary>Hints</summary>
+
+- Look at the help of the `read_csv()` function to find an option that allows you to start reading a file not from the first line but from a different line. 
+- The `read_lines()` function is useful to read each line of a file and store it as a vector. You can try using it to read the first line of the file, containing the world region. 
+- The function `basename()` is useful to retrieve the name of a file in a file path that contains directories. 
+- Remember the `str_*()` family of functions, which can be useful to remove text patterns from a string. 
+
+</details>
+
+
+**Part II**
+
+Now that you have a function to read and tidy a single file, use a `for()` loop to read all the files into a list. 
+Once you read all the files, you may combine them into a single data.frame using the `bind_rows()` function. 
+
+<details><summary>Hints</summary>
+
+- The function `list.files()` may be useful for you to create a vector with the names of the files from the directory. 
+- Remember to create an empty list before starting your for loop. Make sure you create a list with the same length as the length of the vector of file names. 
+
+</details>
+
+<details><summary>Answer</summary>
+
+The answer to this exercise is in a [separate document](data_structures_functions_loops/gapminder_functions_iteration_solutions.html)
+
+</details>
+
+:::
