@@ -387,9 +387,8 @@ div.tocify {
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(x_mixed)</span></code></pre></div>
 <pre><code>## [1] &quot;character&quot;</code></pre>
 </div>
-</div>
-<div id="matrix" class="section level1">
-<h1>Matrix</h1>
+<div id="matrix" class="section level2">
+<h2>Matrix</h2>
 <p>A matrix is a 2-dimensional object (rows and columns), and like atomic vectors it’s an <em>homogenous</em> object (can only contain values of one type).</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>x_mat <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">12</span>, <span class="at">nrow =</span> <span class="dv">3</span>, <span class="at">ncol =</span> <span class="dv">4</span>)</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>x_mat</span></code></pre></div>
@@ -432,8 +431,8 @@ div.tocify {
 <span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a><span class="fu">colMads</span>(x_mat)  <span class="co"># mean absolute deviation</span></span></code></pre></div>
 </div>
 </div>
-<div id="arrays" class="section level1">
-<h1>Arrays</h1>
+<div id="arrays" class="section level2">
+<h2>Arrays</h2>
 <p>Arrays are an N-dimensional generalisation of a matrix, and therefore are also <em>homogeneous</em> (can only contain values of one type).</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>x_arr <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">24</span>, <span class="at">dim =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>))</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>x_arr</span></code></pre></div>
@@ -451,6 +450,7 @@ div.tocify {
 ## [2,]   14   17   20   23
 ## [3,]   15   18   21   24</code></pre>
 <p>A common example of the use of arrays is to store image data (e.g. red, blue and green intensity channels).</p>
+</div>
 <div id="lists" class="section level2">
 <h2>Lists</h2>
 <p>Lists are one of the more versatile types of object in R. The elements of a list can be of any type (even other lists), therefore they are <em>heterogeneous</em> objects. They are also referred to as a <em>recursive vector</em>.</p>
@@ -539,9 +539,8 @@ div.tocify {
 ##   .. .. .. ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;dist&quot; &quot;speed&quot;
 ##  - attr(*, &quot;class&quot;)= chr &quot;lm&quot;</code></pre>
 </div>
-</div>
-<div id="data-frames" class="section level1">
-<h1>Data Frames</h1>
+<div id="data-frames" class="section level2">
+<h2>Data Frames</h2>
 <p>The <code>data.frame</code> object is the most common object to represent tabular data (usually imported using <code>read.csv()</code> and related functions).</p>
 <p>It is a 2-dimensional object but, unlike matrices, it is <em>heterogeneous</em> (each column can be of a different type). The <code>data.frame</code> object is in fact a type of <em>list</em>, where the elements (columns) are all of the same length.</p>
 <p>Similarly to a list, we can extract elements by name or position:</p>
@@ -552,6 +551,7 @@ div.tocify {
 <pre><code>##  [1]  4  4  7  7  8  9 10 10 10 11 11 12 12 12 12 13 13 13 13 14 14 14 14 15 15
 ## [26] 15 16 16 17 17 17 18 18 18 18 19 19 19 20 20 20 20 20 22 23 24 24 24 24 25</code></pre>
 <p>Packages such as <code>dplyr</code> (and the <code>tidyverse</code> more generally) can be used to manipulate <code>data.frame</code> objects.</p>
+</div>
 </div>
 <div id="functions" class="section level1">
 <h1>Functions</h1>
@@ -625,49 +625,96 @@ Answer
 <div id="for-loops" class="section level1">
 <h1>For loops</h1>
 <p>Repeating operations is a common task in any programming language. The <code>for()</code> loop can be a useful tool in these situations.</p>
-<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>){</span>
+<p>Here is a simple example:</p>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>){</span>
 <span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(i)</span>
 <span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <pre><code>## [1] 1
 ## [1] 2
-## [1] 3
-## [1] 4
-## [1] 5
-## [1] 6
-## [1] 7
-## [1] 8
-## [1] 9
-## [1] 10</code></pre>
+## [1] 3</code></pre>
+<p>The basic principle of the <code>for()</code> loop is that a variable is created which will store a different value at each iteration of the loop. In this case we are defining a variable called <code>i</code>, which will take the values 1, 2 and 3 in successive rounds of the loop.</p>
+<p>Often, we want to store the result of the operations done within the loop in an object, so that we can analyse its results later on. Due to its flexibility, we can use a <code>list</code> for this purpose (although an atomic vector may also be suitable in some cases).</p>
 <p>For example, let’s sample 10 numbers from a normal distribution and repeat that 5 times:</p>
 <div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co"># number of sampling repeats</span></span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>n_repeats <span class="ot">&lt;-</span> <span class="dv">5</span></span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, <span class="at">length =</span> n_repeats)</span>
-<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n_repeats){</span>
-<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># sample from normal distribution and add to results list</span></span>
-<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>  result[[i]] <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">10</span>, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">1</span>)</span>
-<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a><span class="co"># create an empty list</span></span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, <span class="at">length =</span> N)</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a><span class="co"># perform our sampling N times</span></span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>N){</span>
+<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># sample from normal distribution and add to results list</span></span>
+<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a>  result[[i]] <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">10</span>, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">1</span>)</span>
+<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <p>The result is a list of length 5:</p>
 <div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>result</span></code></pre></div>
 <pre><code>## [[1]]
-##  [1] -0.6367346 -0.9322491 -0.2000999 -2.1958132 -1.7370814 -0.5511972
-##  [7]  0.7443673  0.2420491  0.6368584 -0.8409473
+##  [1] -0.306218762 -0.327702126  0.149295630  0.093030682 -0.003219673
+##  [6] -0.770252801  0.215714766  1.293814687 -0.599978867 -2.003959000
 ## 
 ## [[2]]
-##  [1] -0.8113380 -0.7297471  1.5314020 -1.1308764 -1.4323888 -0.7384189
-##  [7]  0.1180856  0.8186855 -1.9166017  1.1667397
+##  [1]  0.85880425 -1.84083723 -0.21566463 -0.03394318 -0.48380718  0.21218371
+##  [7]  0.11318785 -0.04666279 -0.62177234 -0.46514725
 ## 
 ## [[3]]
-##  [1]  0.09874570  0.04397517 -0.87316953 -0.09497464 -2.41364424  1.29705597
-##  [7] -1.04196883 -1.96843486  0.11201870  0.17617310
+##  [1] -0.62582063 -0.12355064  2.00314056 -1.05484897  0.02355851  0.57620901
+##  [7]  1.19579747  1.21098216  0.75798130  0.92141086
 ## 
 ## [[4]]
-##  [1]  0.08003471 -0.67907752 -0.86008453  1.06707368  1.28920875 -0.54679712
-##  [7]  1.41969231  0.73759776  0.46868470 -0.38867332
+##  [1] -0.5821074  1.8894834  1.9232425  0.0286684 -1.5142914  0.5336678
+##  [7] -0.5825961  1.8772586  2.1669652  0.8762791
 ## 
 ## [[5]]
-##  [1] -0.6879942 -0.2444178  0.2533251 -0.2363417 -0.5761798  0.3617325
-##  [7]  0.6090806  1.0154865  0.7194141 -1.0039003</code></pre>
-<p>When adding results to an object with a for loop, always create an empty object first. In this case we create an empty list of length 5. This will make your code run much faster.</p>
+##  [1]  0.89467354  0.68770568 -1.89755370  0.36476805 -0.11527905  0.19764965
+##  [7] -0.02720624  0.74972639 -1.62900966 -1.45903137</code></pre>
+<div class="note">
+<p>When adding results to an object with a for loop, <strong>always create an empty object first</strong>. In the example above, we created an empty list of length 5. This will make your code run much faster.</p>
+</div>
+<div class="exercise">
+<p><strong>Part I</strong></p>
+<p>Data about world-wide income per person between 1960 and 2010 was downloaded from the Gapminder foundation and stored as a series of files, containing the data for each country individually.</p>
+<p>The data are stored in text files in a directory entitled “data/multiple_files”. There is one text file for each country. The format of the data in each text file is the same:</p>
+<ul>
+<li>The name of the file gives the country name</li>
+<li>The first line gives the world region they occur in</li>
+<li>The rest of the data starts at line 3 of the file, and is in a comma-separated format</li>
+</ul>
+<p>Create a function called <code>read_gapminder</code> that reads in the data from a single file and returns a data.frame object. The function should:</p>
+<ul>
+<li>Accept a single argument (a character string of the file location)</li>
+<li>Get the main data, stored in line 3 ownwards of the file</li>
+<li>Extract the country from the filename and store this in a new column of the final data.frame</li>
+<li>Get the world region from the first line of the file and store this in a new column of the final data.frame</li>
+</ul>
+<details>
+<summary>
+Hints
+</summary>
+<ul>
+<li>Look at the help of the <code>read_csv()</code> function to find an option that allows you to start reading a file not from the first line but from a different line.</li>
+<li>The <code>read_lines()</code> function is useful to read each line of a file and store it as a vector. You can try using it to read the first line of the file, containing the world region.</li>
+<li>The function <code>basename()</code> is useful to retrieve the name of a file in a file path that contains directories.</li>
+<li>Remember the <code>str_*()</code> family of functions, which can be useful to remove text patterns from a string.</li>
+</ul>
+</details>
+<p><strong>Part II</strong></p>
+<p>Now that you have a function to read and tidy a single file, use a <code>for()</code> loop to read all the files into a list. Once you read all the files, you may combine them into a single data.frame using the <code>bind_rows()</code> function.</p>
+<details>
+<summary>
+Hints
+</summary>
+<ul>
+<li>The function <code>list.files()</code> may be useful for you to create a vector with the names of the files from the directory.</li>
+<li>Remember to create an empty list before starting your for loop. Make sure you create a list with the same length as the length of the vector of file names.</li>
+</ul>
+</details>
+<details>
+<summary>
+Answer
+</summary>
+<p>The answer to this exercise is in a <a href="data_structures_functions_loops/gapminder_functions_iteration_solutions.html">separate document</a></p>
+</details>
+</div>
 </div>
 
 
