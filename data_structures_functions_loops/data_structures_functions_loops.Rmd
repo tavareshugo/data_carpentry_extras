@@ -49,6 +49,9 @@ x_lgl <- c(TRUE, FALSE, TRUE)
 class(x_lgl)
 ```
 
+Note that, by default, when creating a vector of numbers, unless we use the "L" suffix after the number, R will create a numeric vector. 
+(Why "L" as the suffix? The [answer isn't clear](https://stackoverflow.com/questions/24350733/why-would-r-use-the-l-suffix-to-denote-an-integer).)
+
 Because vectors are homogeneous, coercion occurs when there are mixed types:
 
 ```{r}
@@ -56,6 +59,8 @@ Because vectors are homogeneous, coercion occurs when there are mixed types:
 x_mixed <- c("a", 1, 5)
 class(x_mixed)
 ```
+
+
 
 
 ## Matrix
@@ -119,7 +124,9 @@ x_arr <- array(1:24, dim = c(3, 4, 2))
 x_arr
 ```
 
-A common example of the use of arrays is to store image data (e.g. red, blue and green intensity channels).
+A common example of the use of arrays is to store image data (e.g. red, blue and green pixel intensity channels):
+
+![](https://brohrer.github.io/images/image_processing/three_d_array.png){width=50%}
 
 
 ## Lists
@@ -229,7 +236,7 @@ scale_minmax <- function(x){
 }
 ```
 
-We should not get a warning when there are infinite values or an error if the vector is not character:
+We should now get a warning when there are infinite values, or an error if the vector is not character:
 
 ```{r}
 scale_minmax(c(1, 2, Inf))
@@ -297,8 +304,8 @@ For example, let's sample 10 numbers from a normal distribution and repeat that 
 # number of sampling repeats
 N <- 5
 
-# create an empty list
-result <- vector("list", length = N)
+# create an empty list of length equal to the number of repeats
+result <- vector(mode = "list", length = N)
 
 # perform our sampling N times
 for (i in 1:N){
@@ -313,10 +320,22 @@ The result is a list of length 5:
 result
 ```
 
+Something to note in the code above is that we used the `vector()` function to create an empty list, whereas earlier we had manually created a list with the `list()` function. 
+This is a little confusing, but the thing to remember is that a list is a type of vector - a _recursive vector_ - and when we want to create an empty list we have to use the `vector()` function as shown above. 
+If we are manually creating a list with specific values, then we can use the `list()` function. 
+
+For example, here is how you could create different types of empty objects to store your results: 
+
+- `vector(mode = "numeric", length = 5)` - a numeric atomic vector
+- `vector(mode = "character", length = 5)` - a character atomic vector
+- `vector(mode = "logical", length = 5)` - a logical atomic vector
+- `vector(mode = "list", length = 5)` - a list
+
+
 :::note 
 
-When adding results to an object with a for loop, **always create an empty object first**. 
-In the example above, we created an empty list of length 5. 
+When adding results to an object with a for loop, **always create an empty object first** with the right size for the number of iterations you will be doing. 
+In the example above, we created an empty list of length 5, since we were repeating our operation 5 times. 
 This will make your code run much faster. 
 
 :::
@@ -367,7 +386,7 @@ Once you read all the files, you may combine them into a single data.frame using
 
 <details><summary>Answer</summary>
 
-The answer to this exercise is in a [separate document](data_structures_functions_loops/gapminder_functions_iteration_solutions.html)
+The answer to this exercise is in a [separate document](gapminder_functions_iteration_solutions.html)
 
 </details>
 

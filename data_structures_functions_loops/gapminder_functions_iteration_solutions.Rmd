@@ -27,11 +27,11 @@ read_gapminder <- function(file){
   # Get the country name - from the file name
   country_name <- file %>% basename() %>% str_remove(".csv")
   
-  # Add diet and chick ID to our table
+  # Add country and world region to our table
   country_data <- country_data %>% 
     mutate(country = country_name, world_region = country_region)
   
-  # Return the tidy chick_data
+  # Return the tidy data
   return(country_data)
 }
 ```
@@ -179,11 +179,11 @@ read_gapminder <- function(file){
   # Get the country name - from the file name
   country_name <- file %>% basename() %>% str_remove(".csv")
   
-  # Add diet and chick ID to our table
+  # Add country and world region to our table
   country_data <- country_data %>% 
     mutate(country = country_name, world_region = country_region)
   
-  # Return the tidy chick_data
+  # Return the tidy data
   return(country_data)
 }
 ```
