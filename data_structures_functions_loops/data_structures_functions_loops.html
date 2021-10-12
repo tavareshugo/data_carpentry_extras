@@ -431,12 +431,38 @@ div.tocify {
 <span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a><span class="fu">colIQRs</span>(x_mat)  <span class="co"># inter-quartile range</span></span>
 <span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a><span class="fu">colMads</span>(x_mat)  <span class="co"># mean absolute deviation</span></span></code></pre></div>
 </div>
+<div id="matrix-operations" class="section level3">
+<h3>Matrix Operations</h3>
+<p>By default, matrix operations such as <code>+</code>, <code>-</code>, <code>*</code> and <code>/</code> are done element-wise (or in a vectorised manner). That is, when we do:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>x_mat <span class="sc">*</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">100</span>, <span class="dv">1000</span>)</span></code></pre></div>
+<pre><code>##       sample1 sample2 sample3 sample4
+## gene1       1    4000     700     100
+## gene2      20       5    8000    1100
+## gene3     300      60       9   12000</code></pre>
+<p>R will go element-by-element through the columns of the matrix and multiply:</p>
+<table>
+<tbody>
+<tr class="odd">
+<td>1 x 1</td>
+<td>4 x 1000</td>
+</tr>
+<tr class="even">
+<td>2 x 10</td>
+<td>5 x 1</td>
+</tr>
+<tr class="odd">
+<td>3 x 100</td>
+<td>6 x 10</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div id="arrays" class="section level2">
 <h2>Arrays</h2>
 <p>Arrays are an N-dimensional generalisation of a matrix, and therefore are also <em>homogeneous</em> (can only contain values of one type).</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>x_arr <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">24</span>, <span class="at">dim =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>))</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>x_arr</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>x_arr <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">24</span>, <span class="at">dim =</span> <span class="fu">c</span>(<span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>))</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>x_arr</span></code></pre></div>
 <pre><code>## , , 1
 ## 
 ##      [,1] [,2] [,3] [,4]
@@ -456,9 +482,9 @@ div.tocify {
 <div id="lists" class="section level2">
 <h2>Lists</h2>
 <p>Lists are one of the more versatile types of object in R. The elements of a list can be of any type (even other lists), therefore they are <em>heterogeneous</em> objects. They are also referred to as a <em>recursive vector</em>.</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>x_lst <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">a =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">b =</span> <span class="fu">data.frame</span>(<span class="at">x =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">y =</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">13</span>))</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>x_lst</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>x_lst <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">a =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>,</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">b =</span> <span class="fu">data.frame</span>(<span class="at">x =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">3</span>, <span class="at">y =</span> <span class="dv">10</span><span class="sc">:</span><span class="dv">13</span>))</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>x_lst</span></code></pre></div>
 <pre><code>## $a
 ## [1] 1 2 3
 ## 
@@ -469,20 +495,20 @@ div.tocify {
 ## 3 2 12
 ## 4 3 13</code></pre>
 <p>Access elements in a list either by name (using <code>$</code>) or by position (using <code>[[</code>):</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>x_lst<span class="sc">$</span>a</span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>x_lst<span class="sc">$</span>a</span></code></pre></div>
 <pre><code>## [1] 1 2 3</code></pre>
-<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>x_lst[[<span class="dv">1</span>]]</span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>x_lst[[<span class="dv">1</span>]]</span></code></pre></div>
 <pre><code>## [1] 1 2 3</code></pre>
 <p>Note that <code>x[1]</code> would return a <em>list</em> with one element whereas <code>x[[1]]</code> “pulls” the actual value from the list and, in this example, returns a vector.</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(x_lst[<span class="dv">1</span>])</span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(x_lst[<span class="dv">1</span>])</span></code></pre></div>
 <pre><code>## [1] &quot;list&quot;</code></pre>
-<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(x_lst[[<span class="dv">1</span>]])</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(x_lst[[<span class="dv">1</span>]])</span></code></pre></div>
 <pre><code>## [1] &quot;integer&quot;</code></pre>
 <p>Many functions in R return objects that are, in essence, a list. For example, the <code>lm()</code> function, used to fit linear models, returns a list object (although the object has class “lm”):</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>lm_example <span class="ot">&lt;-</span> <span class="fu">lm</span>(dist <span class="sc">~</span> speed, <span class="at">data =</span> cars)</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(lm_example)</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>lm_example <span class="ot">&lt;-</span> <span class="fu">lm</span>(dist <span class="sc">~</span> speed, <span class="at">data =</span> cars)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(lm_example)</span></code></pre></div>
 <pre><code>## [1] &quot;lm&quot;</code></pre>
-<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(lm_example) <span class="co"># structure of the object</span></span></code></pre></div>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(lm_example) <span class="co"># structure of the object</span></span></code></pre></div>
 <pre><code>## List of 12
 ##  $ coefficients : Named num [1:2] -17.58 3.93
 ##   ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;(Intercept)&quot; &quot;speed&quot;
@@ -546,10 +572,10 @@ div.tocify {
 <p>The <code>data.frame</code> object is the most common object to represent tabular data (usually imported using <code>read.csv()</code> and related functions).</p>
 <p>It is a 2-dimensional object but, unlike matrices, it is <em>heterogeneous</em> (each column can be of a different type). The <code>data.frame</code> object is in fact a type of <em>list</em>, where the elements (columns) are all of the same length.</p>
 <p>Similarly to a list, we can extract elements by name or position:</p>
-<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>cars<span class="sc">$</span>speed</span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>cars<span class="sc">$</span>speed</span></code></pre></div>
 <pre><code>##  [1]  4  4  7  7  8  9 10 10 10 11 11 12 12 12 12 13 13 13 13 14 14 14 14 15 15
 ## [26] 15 16 16 17 17 17 18 18 18 18 19 19 19 20 20 20 20 20 22 23 24 24 24 24 25</code></pre>
-<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>cars[[<span class="dv">1</span>]]</span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>cars[[<span class="dv">1</span>]]</span></code></pre></div>
 <pre><code>##  [1]  4  4  7  7  8  9 10 10 10 11 11 12 12 12 12 13 13 13 13 14 14 14 14 15 15
 ## [26] 15 16 16 17 17 17 18 18 18 18 19 19 19 20 20 20 20 20 22 23 24 24 24 24 25</code></pre>
 <p>Packages such as <code>dplyr</code> (and the <code>tidyverse</code> more generally) can be used to manipulate <code>data.frame</code> objects.</p>
@@ -559,39 +585,39 @@ div.tocify {
 <h1>Functions</h1>
 <p>When repeating a task, it can be useful to write our own custom functions.</p>
 <p>Here is the basic syntax:</p>
-<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>my_function <span class="ot">&lt;-</span> <span class="cf">function</span>(arguments){</span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># code for what the function does</span></span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># return value</span></span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>my_function <span class="ot">&lt;-</span> <span class="cf">function</span>(arguments){</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># code for what the function does</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># return value</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <p>For example, let’s define a function that makes min-max scaling of a vector:</p>
 <p><span class="math inline">\(x&#39; = \frac{x - min(x)}{max(x) - min(x)}\)</span></p>
-<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>scale_minmax <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  x_scaled <span class="ot">&lt;-</span> (x <span class="sc">-</span> <span class="fu">min</span>(x))<span class="sc">/</span>(<span class="fu">max</span>(x) <span class="sc">-</span> <span class="fu">min</span>(x))</span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(x_scaled)</span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>scale_minmax <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  x_scaled <span class="ot">&lt;-</span> (x <span class="sc">-</span> <span class="fu">min</span>(x))<span class="sc">/</span>(<span class="fu">max</span>(x) <span class="sc">-</span> <span class="fu">min</span>(x))</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(x_scaled)</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <p>And test this function on a vector of numbers:</p>
-<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">scale_minmax</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">scale_minmax</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>)</span></code></pre></div>
 <pre><code>##  [1] 0.0000000 0.1111111 0.2222222 0.3333333 0.4444444 0.5555556 0.6666667
 ##  [8] 0.7777778 0.8888889 1.0000000</code></pre>
 <div id="including-checks-in-your-functions" class="section level2">
 <h2>Including checks in your functions</h2>
 <p>When writing your own functions, it is a good practice to include as many checks as possible, to avoid possible unintended errors or (even worse) wrong answers.</p>
 <p>Using <code>if/else</code> statements can be very useful in these circumstances. For example, here is how we could improve our previous function:</p>
-<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>scale_minmax <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
-<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># check if x is numeric</span></span>
-<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="sc">!</span><span class="fu">is.numeric</span>(x)){</span>
-<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;x must be numeric.&quot;</span>)</span>
-<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># check if there are infinite values</span></span>
-<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">any</span>(<span class="fu">is.infinite</span>(x))){</span>
-<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">warning</span>(<span class="st">&quot;Infinite values present in the vector. This will result in NaN values.&quot;</span>)</span>
-<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>  x_scaled <span class="ot">&lt;-</span> (x <span class="sc">-</span> <span class="fu">min</span>(x))<span class="sc">/</span>(<span class="fu">max</span>(x) <span class="sc">-</span> <span class="fu">min</span>(x))</span>
-<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(x_scaled)</span>
-<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>scale_minmax <span class="ot">&lt;-</span> <span class="cf">function</span>(x){</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># check if x is numeric</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="sc">!</span><span class="fu">is.numeric</span>(x)){</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;x must be numeric.&quot;</span>)</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># check if there are infinite values</span></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">any</span>(<span class="fu">is.infinite</span>(x))){</span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">warning</span>(<span class="st">&quot;Infinite values present in the vector. This will result in NaN values.&quot;</span>)</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>  x_scaled <span class="ot">&lt;-</span> (x <span class="sc">-</span> <span class="fu">min</span>(x))<span class="sc">/</span>(<span class="fu">max</span>(x) <span class="sc">-</span> <span class="fu">min</span>(x))</span>
+<span id="cb44-12"><a href="#cb44-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(x_scaled)</span>
+<span id="cb44-13"><a href="#cb44-13" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <p>We should now get a warning when there are infinite values, or an error if the vector is not character:</p>
-<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">scale_minmax</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">Inf</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">scale_minmax</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">Inf</span>))</span></code></pre></div>
 <pre><code>## Warning in scale_minmax(c(1, 2, Inf)): Infinite values present in the vector.
 ## This will result in NaN values.</code></pre>
 <pre><code>## [1]   0   0 NaN</code></pre>
@@ -602,23 +628,23 @@ div.tocify {
 Answer
 </summary>
 <p>Following the convention of other functions such as <code>mean()</code>, <code>min()</code>, <code>max()</code>, etc., we can add an argument called <code>na.rm</code> as follows:</p>
-<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>scale_minmax <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">na.rm =</span> <span class="cn">FALSE</span>){</span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># check if x is numeric</span></span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="sc">!</span><span class="fu">is.numeric</span>(x)){</span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;x must be numeric.&quot;</span>)</span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># check if there are infinite values</span></span>
-<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">any</span>(<span class="fu">is.infinite</span>(x))){</span>
-<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">warning</span>(<span class="st">&quot;Infinite values present in the vector. This will result in NaN values.&quot;</span>)</span>
-<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a>  x_scaled <span class="ot">&lt;-</span> (x <span class="sc">-</span> <span class="fu">min</span>(x, <span class="at">na.rm =</span> na.rm))<span class="sc">/</span>(<span class="fu">max</span>(x, <span class="at">na.rm =</span> na.rm) <span class="sc">-</span> <span class="fu">min</span>(x, <span class="at">na.rm =</span> na.rm))</span>
-<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(x_scaled)</span>
-<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>scale_minmax <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">na.rm =</span> <span class="cn">FALSE</span>){</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># check if x is numeric</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="sc">!</span><span class="fu">is.numeric</span>(x)){</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;x must be numeric.&quot;</span>)</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># check if there are infinite values</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(<span class="fu">any</span>(<span class="fu">is.infinite</span>(x))){</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">warning</span>(<span class="st">&quot;Infinite values present in the vector. This will result in NaN values.&quot;</span>)</span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a>  x_scaled <span class="ot">&lt;-</span> (x <span class="sc">-</span> <span class="fu">min</span>(x, <span class="at">na.rm =</span> na.rm))<span class="sc">/</span>(<span class="fu">max</span>(x, <span class="at">na.rm =</span> na.rm) <span class="sc">-</span> <span class="fu">min</span>(x, <span class="at">na.rm =</span> na.rm))</span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(x_scaled)</span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <p>We can now test our function:</p>
-<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">scale_minmax</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">NA</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">scale_minmax</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">NA</span>))</span></code></pre></div>
 <pre><code>## [1] NA NA NA</code></pre>
-<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">scale_minmax</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">NA</span>), <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">scale_minmax</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="cn">NA</span>), <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 <pre><code>## [1]  0  1 NA</code></pre>
 </details>
 </div>
@@ -628,47 +654,47 @@ Answer
 <h1>For loops</h1>
 <p>Repeating operations is a common task in any programming language. The <code>for()</code> loop can be a useful tool in these situations.</p>
 <p>Here is a simple example:</p>
-<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>){</span>
-<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(i)</span>
-<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>){</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(i)</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <pre><code>## [1] 1
 ## [1] 2
 ## [1] 3</code></pre>
 <p>The basic principle of the <code>for()</code> loop is that a variable is created which will store a different value at each iteration of the loop. In this case we are defining a variable called <code>i</code>, which will take the values 1, 2 and 3 in successive rounds of the loop.</p>
 <p>Often, we want to store the result of the operations done within the loop in an object, so that we can analyse its results later on. Due to its flexibility, we can use a <code>list</code> for this purpose (although an atomic vector may also be suitable in some cases).</p>
 <p>For example, let’s sample 10 numbers from a normal distribution and repeat that 5 times:</p>
-<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co"># number of sampling repeats</span></span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">5</span></span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a><span class="co"># create an empty list of length equal to the number of repeats</span></span>
-<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="at">mode =</span> <span class="st">&quot;list&quot;</span>, <span class="at">length =</span> N)</span>
-<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a><span class="co"># perform our sampling N times</span></span>
-<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>N){</span>
-<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># sample from normal distribution and add to results list</span></span>
-<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a>  result[[i]] <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">10</span>, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">1</span>)</span>
-<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co"># number of sampling repeats</span></span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a><span class="co"># create an empty list of length equal to the number of repeats</span></span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="at">mode =</span> <span class="st">&quot;list&quot;</span>, <span class="at">length =</span> N)</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a><span class="co"># perform our sampling N times</span></span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>N){</span>
+<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># sample from normal distribution and add to results list</span></span>
+<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>  result[[i]] <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(<span class="dv">10</span>, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="dv">1</span>)</span>
+<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <p>The result is a list of length 5:</p>
-<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>result</span></code></pre></div>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>result</span></code></pre></div>
 <pre><code>## [[1]]
-##  [1]  0.735144897  0.896968027 -0.009299002 -0.370708391  0.326691125
-##  [6] -0.648865952  0.023122083  0.144717510 -0.010977683  0.328205198
+##  [1] -0.05128106 -0.43031128 -0.08803100 -0.11219187 -1.49022726  0.45717637
+##  [7] -0.94917423 -1.55510953 -0.66437962 -0.93051947
 ## 
 ## [[2]]
-##  [1] -0.22498759  0.16009391 -0.67145841  0.08216559 -0.99256992  0.35859551
-##  [7] -0.48297270  0.37552903 -1.10449840  0.65852912
+##  [1]  0.91347503 -0.42170575 -0.69370178  0.19967030 -0.18845059  0.06653174
+##  [7]  0.28444628 -0.61809650 -1.10070612 -0.85825916
 ## 
 ## [[3]]
-##  [1] -1.2458657 -0.5973599 -0.6074111  1.0345061  2.2243258 -1.6104971
-##  [7] -0.2628387 -2.4304649  1.0108076 -0.8125871
+##  [1] -0.16908986 -0.45621043 -0.24983938  0.40555026 -1.87941344 -0.27235956
+##  [7]  1.01940664 -1.57009756  1.12291310  0.03836651
 ## 
 ## [[4]]
-##  [1] -0.4593038 -0.5912036  0.9279439  0.4177890  1.2335743 -0.1297911
-##  [7]  0.7560071 -1.4618623  1.1735480  0.7831099
+##  [1] -0.83899886 -1.10616859  0.48190544 -0.13426473 -0.52531494  0.09000839
+##  [7] -0.49771522 -0.14710017  1.59401533  0.17399035
 ## 
 ## [[5]]
-##  [1] -1.49886976  0.03741217 -0.29338129  1.14705179 -0.34835410  0.02902758
-##  [7]  0.61582389 -1.07582696  1.11409787  2.08135065</code></pre>
+##  [1] -0.06864848  0.52468003 -0.34225353  2.39692805 -0.22292934  0.99145329
+##  [7] -1.61390705 -0.01322769  1.70775673 -0.16756161</code></pre>
 <p>Something to note in the code above is that we used the <code>vector()</code> function to create an empty list, whereas earlier we had manually created a list with the <code>list()</code> function. This is a little confusing, but the thing to remember is that a list is a type of vector - a <em>recursive vector</em> - and when we want to create an empty list we have to use the <code>vector()</code> function as shown above. If we are manually creating a list with specific values, then we can use the <code>list()</code> function.</p>
 <p>For example, here is how you could create different types of empty objects to store your results:</p>
 <ul>

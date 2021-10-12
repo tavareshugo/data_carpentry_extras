@@ -115,6 +115,43 @@ colMads(x_mat)  # mean absolute deviation
 ```
 
 
+### Matrix Operations
+
+By default, matrix operations such as `+`, `-`, `*` and `/` are done element-wise (or in a vectorised manner). 
+That is, when we take our matrix from above: 
+
+```{r, echo=FALSE}
+x_mat
+```
+
+And multiply it by a vector of length 4:
+
+```{r}
+x_mat * c(1, 10, 100, 1000)
+```
+
+R will go element-by-element through the columns of the matrix and multiply the values "recyling" the second vector as many times as it needs:
+
+| | | |
+| - | - | - |
+| 1 x 1 | 4 x 1000 | 7 x 100 | 10 x 1 |
+| 2 x 10 | 5 x 1 | 8 x 1000 | 11 x 10 |
+| 3 x 100 | 6 x 10 | 9 x 1 | 12 x 100 |
+
+If what we want is to do _matrix multiplication_ then we have to use the operator `%*%`:
+
+```{r}
+x_mat %*% c(1, 10, 100, 1000)
+```
+
+Another common task when manipulating matrices is to transpose them.
+For this, we can use the `t()` function: 
+
+```{r}
+t(x_mat)
+```
+
+
 ## Arrays
 
 Arrays are an N-dimensional generalisation of a matrix, and therefore are also _homogeneous_ (can only contain values of one type).
