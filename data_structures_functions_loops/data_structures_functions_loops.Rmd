@@ -421,6 +421,14 @@ Once you read all the files, you may combine them into a single data.frame using
 
 </details>
 
+
+**Part III**
+
+In _R_ it is not very common to encounter _for loops_. 
+This is because most _R_ users use a _functional approach_ to programming where, instead of writing a for loop, they use functions that use other functions to iterate through a list of values.  
+Read the section [Loops vs Functionals](https://r4ds.had.co.nz/iteration.html#for-loops-vs.-functionals) from the _R4DS_ book and see if you can replace your loop from the previous task with the `map` function.
+
+
 <details><summary>Answer</summary>
 
 The answer to this exercise is in a [separate document](gapminder_functions_iteration_solutions.html)
@@ -428,3 +436,4 @@ The answer to this exercise is in a [separate document](gapminder_functions_iter
 </details>
 
 :::
+
