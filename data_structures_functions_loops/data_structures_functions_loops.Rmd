@@ -1,7 +1,7 @@
 ---
 title: "Data Structures, Functions and Control Flow in R"
 author: "Hugo Tavares"
-date: "6 Oct 2021"
+date: "10 Oct 2022"
 output:
   html_document:
     toc: yes
